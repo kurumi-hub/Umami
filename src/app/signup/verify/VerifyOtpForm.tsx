@@ -33,7 +33,7 @@ export default function VerifyOtpForm({ email }: { email: string }) {
           placeholder="00000000"
           required
           autoFocus
-          className="mt-1.5 w-full rounded-2xl border border-pink-300/70 bg-white px-4 py-3 text-center text-[22px] font-bold tracking-[0.35em] text-ink outline-none transition-colors placeholder:tracking-[0.35em] placeholder:text-ink-soft/40 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15"
+          className="mt-1.5 w-full rounded-2xl border border-pink-300/70 bg-surface px-4 py-3 text-center text-[22px] font-bold tracking-[0.35em] text-ink outline-none transition-colors placeholder:tracking-[0.35em] placeholder:text-ink-soft/40 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15"
         />
       </label>
 

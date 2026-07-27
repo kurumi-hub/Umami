@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
+/* Bật dark mode theo class .dark (toggle thủ công), không chỉ theo hệ thống */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #fff6f8;
   --foreground: #3a1f2b;
+  --surface: #ffffff;
+  --surface-2: #fff6f8;
 
   --pink-50: #fff0f4;
   --pink-100: #ffe1ea;
@@ -15,9 +20,28 @@
   --ink-soft: #8c6b78;
 }
 
+.dark {
+  --background: #201118;
+  --foreground: #ffe9ef;
+  --surface: #2b1620;
+  --surface-2: #24131b;
+
+  --pink-50: #3a1f2b;
+  --pink-100: #472333;
+  --pink-300: #7a3a52;
+  --pink-500: #ff85a1;
+  --pink-600: #ff9db4;
+  --mango: #ffc16b;
+  --mint: #8fd9ac;
+  --ink: #ffe9ef;
+  --ink-soft: #c99aad;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-pink-50: var(--pink-50);
   --color-pink-100: var(--pink-100);
   --color-pink-300: var(--pink-300);
@@ -34,10 +58,31 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Fallback nhẹ cho trình duyệt không hỗ trợ View Transitions API.
+     Chỉ transition 2 thuộc tính rẻ (không đụng box-shadow/blur) để
+     tránh giật máy khi đổi theme. */
+  transition: background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ---------- hiệu ứng loang tròn khi bấm nút đổi theme ---------- */
+/* Chạy trên ảnh chụp (screenshot) được GPU composite riêng, không đụng
+   tới DOM thật nên rất nhẹ - không cần (và không nên) thêm transition
+   cho từng phần tử trong trang. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
 }
 
 @media (prefers-reduced-motion: reduce) {

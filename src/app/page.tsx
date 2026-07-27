@@ -18,16 +18,17 @@ import {
 } from "./icons";
 import { createClient } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
+import ThemeToggle from "@/app/ThemeToggle";
 
 const menuCategories = [
   { Icon: IconRiceBowl, name: "Cơm & Món chính", count: "450+ quán", bg: "bg-pink-100" },
-  { Icon: IconCup, name: "Trà sữa & Nước", count: "320+ quán", bg: "bg-[#fff0d9]" },
-  { Icon: IconLeaf, name: "Đồ chay lành", count: "180+ quán", bg: "bg-[#e3f6e8]" },
+  { Icon: IconCup, name: "Trà sữa & Nước", count: "320+ quán", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
+  { Icon: IconLeaf, name: "Đồ chay lành", count: "180+ quán", bg: "bg-[#e3f6e8] dark:bg-[#1f3a2b]" },
   { Icon: IconCake, name: "Tráng miệng", count: "210+ quán", bg: "bg-pink-100" },
-  { Icon: IconPizza, name: "Pizza & Fast food", count: "260+ quán", bg: "bg-[#fff0d9]" },
-  { Icon: IconBowl, name: "Mì & Phở", count: "300+ quán", bg: "bg-[#e3f6e8]" },
+  { Icon: IconPizza, name: "Pizza & Fast food", count: "260+ quán", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
+  { Icon: IconBowl, name: "Mì & Phở", count: "300+ quán", bg: "bg-[#e3f6e8] dark:bg-[#1f3a2b]" },
   { Icon: IconTakeoutBox, name: "Ăn vặt", count: "400+ quán", bg: "bg-pink-100" },
-  { Icon: IconBurger, name: "Burger & Gà rán", count: "150+ quán", bg: "bg-[#fff0d9]" },
+  { Icon: IconBurger, name: "Burger & Gà rán", count: "150+ quán", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
 ];
 
 const steps = [
@@ -102,7 +103,7 @@ function StoreBadge({ dark = true }: { dark?: boolean }) {
   return (
     <div
       className={`flex items-center gap-2.5 rounded-2xl px-[18px] py-2.5 text-[13px] font-semibold ${
-        dark ? "bg-ink text-white" : "bg-white/15 text-white"
+        dark ? "bg-[#2b1620] text-white" : "bg-white/15 text-white"
       }`}
     >
       <IconApple className="w-5 h-5" />
@@ -118,7 +119,7 @@ function StoreBadgePlay({ dark = true }: { dark?: boolean }) {
   return (
     <div
       className={`flex items-center gap-2.5 rounded-2xl px-[18px] py-2.5 text-[13px] font-semibold ${
-        dark ? "bg-ink text-white" : "bg-white/15 text-white"
+        dark ? "bg-[#2b1620] text-white" : "bg-white/15 text-white"
       }`}
     >
       <IconPlay className="w-4 h-4" />
@@ -139,7 +140,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col flex-1">
       {/* NAV */}
-      <header className="sticky top-0 z-50 bg-[rgba(255,246,248,0.85)] backdrop-blur-md border-b border-pink-500/15">
+      <header className="sticky top-0 z-50 bg-[rgba(255,246,248,0.85)] dark:bg-[rgba(32,17,24,0.85)] backdrop-blur-md border-b border-pink-500/15">
         <nav className="max-w-[1160px] mx-auto flex items-center justify-between px-6 py-4">
           <Logo />
           <div className="hidden md:flex gap-9 font-semibold text-[15px] text-ink">
@@ -157,36 +158,40 @@ export default async function Home() {
             </a>
           </div>
 
-          {user ? (
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:block text-[14px] font-semibold text-ink">
-                Chào, {user.user_metadata?.full_name?.split(" ").pop() || "bạn"}
-              </span>
-              <form action={logout}>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center rounded-full border-2 border-pink-300 px-5 py-2.5 text-[14px] font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+
+            {user ? (
+              <div className="flex items-center gap-4">
+                <span className="hidden sm:block text-[14px] font-semibold text-ink">
+                  Chào, {user.user_metadata?.full_name?.split(" ").pop() || "bạn"}
+                </span>
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center rounded-full border-2 border-pink-300 px-5 py-2.5 text-[14px] font-bold text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
+                  >
+                    Đăng xuất
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/login"
+                  className="hidden sm:inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[14px] font-bold text-ink hover:text-pink-600 transition-colors"
                 >
-                  Đăng xuất
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="hidden sm:inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[14px] font-bold text-ink hover:text-pink-600 transition-colors"
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                href="/signup"
-                className="inline-flex items-center justify-center rounded-full bg-pink-500 px-[22px] py-2.5 text-[14px] font-bold text-white shadow-[0_10px_24px_-8px_rgba(255,111,145,0.65)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-8px_rgba(255,111,145,0.75)]"
-              >
-                Đăng ký
-              </Link>
-            </div>
-          )}
+                  Đăng nhập
+                </Link>
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center rounded-full bg-pink-500 px-[22px] py-2.5 text-[14px] font-bold text-white shadow-[0_10px_24px_-8px_rgba(255,111,145,0.65)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-8px_rgba(255,111,145,0.75)]"
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            )}
+          </div>
         </nav>
       </header>
 
@@ -197,7 +202,7 @@ export default async function Home() {
 
         <div className="relative z-10 max-w-[1160px] mx-auto px-6 grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] gap-12 items-center text-center md:text-left">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[13px] font-bold text-pink-600 shadow-[0_6px_16px_-8px_rgba(255,111,145,0.4)] mb-5">
+            <div className="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[13px] font-bold text-pink-600 shadow-[0_6px_16px_-8px_rgba(255,111,145,0.4)] mb-5">
               <IconClock className="w-4 h-4" />
               Giao trung bình 15 phút
             </div>
@@ -248,17 +253,17 @@ export default async function Home() {
           </div>
 
           <div className="relative flex justify-center">
-            <div className="relative w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] rounded-full bg-gradient-to-br from-white to-pink-50 flex items-center justify-center shadow-[0_30px_60px_-20px_rgba(255,111,145,0.45)]">
+            <div className="relative w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] rounded-full bg-gradient-to-br from-surface to-pink-50 flex items-center justify-center shadow-[0_30px_60px_-20px_rgba(255,111,145,0.45)]">
               <span className="animate-steam absolute w-1.5 rounded-md bg-white/90 blur-[1px] left-[44%] top-[6%] h-10" />
               <span className="animate-steam absolute w-1.5 rounded-md bg-white/90 blur-[1px] left-[52%] top-[2%] h-[52px] [animation-delay:0.6s]" />
               <span className="animate-steam absolute w-1.5 rounded-md bg-white/90 blur-[1px] left-[60%] top-[8%] h-[34px] [animation-delay:1.2s]" />
               <IconBowl className="w-[150px] h-[150px] sm:w-[170px] sm:h-[170px] text-pink-500" />
             </div>
-            <div className="animate-bob absolute top-[8%] -left-[6%] flex items-center gap-2 bg-white rounded-[18px] px-4 py-2.5 shadow-[0_14px_30px_-12px_rgba(58,31,43,0.25)] font-bold text-[13px]">
+            <div className="animate-bob absolute top-[8%] -left-[6%] flex items-center gap-2 bg-surface rounded-[18px] px-4 py-2.5 shadow-[0_14px_30px_-12px_rgba(58,31,43,0.25)] font-bold text-[13px]">
               <IconClock className="w-4 h-4 text-pink-500" />
               Giao sau 12 phút
             </div>
-            <div className="animate-bob absolute bottom-[6%] -right-[8%] flex items-center gap-1.5 bg-white rounded-[18px] px-4 py-2.5 shadow-[0_14px_30px_-12px_rgba(58,31,43,0.25)] font-bold text-[13px] [animation-delay:1.3s]">
+            <div className="animate-bob absolute bottom-[6%] -right-[8%] flex items-center gap-1.5 bg-surface rounded-[18px] px-4 py-2.5 shadow-[0_14px_30px_-12px_rgba(58,31,43,0.25)] font-bold text-[13px] [animation-delay:1.3s]">
               <IconStar className="w-4 h-4 text-mango" />
               4.9 · 800 đánh giá
             </div>
@@ -295,7 +300,7 @@ export default async function Home() {
           {steps.map((s) => (
             <div
               key={s.num}
-              className="ticket-edge relative bg-white rounded-[20px] px-6 pt-[34px] pb-[30px] shadow-[0_16px_40px_-20px_rgba(58,31,43,0.25)]"
+              className="ticket-edge relative bg-surface rounded-[20px] px-6 pt-[34px] pb-[30px] shadow-[0_16px_40px_-20px_rgba(58,31,43,0.25)]"
             >
               <span className="inline-flex items-center justify-center w-[34px] h-[34px] rounded-[10px] bg-pink-100 text-pink-600 font-display font-extrabold text-sm mb-4">
                 {s.num}
@@ -327,7 +332,7 @@ export default async function Home() {
             {menuCategories.map((c) => (
               <div
                 key={c.name}
-                className="bg-white rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
+                className="bg-surface rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
               >
                 <div
                   className={`w-16 h-16 rounded-[18px] mx-auto mb-3.5 flex items-center justify-center ${c.bg}`}
@@ -364,8 +369,8 @@ export default async function Home() {
             </div>
           </div>
           <div className="flex justify-center">
-            <div className="w-[190px] h-[380px] bg-white rounded-[34px] p-2.5 shadow-[0_30px_60px_-18px_rgba(0,0,0,0.35)]">
-              <div className="w-full h-full rounded-[26px] bg-gradient-to-b from-pink-50 to-white flex flex-col items-center justify-center gap-3">
+            <div className="w-[190px] h-[380px] bg-surface rounded-[34px] p-2.5 shadow-[0_30px_60px_-18px_rgba(0,0,0,0.35)]">
+              <div className="w-full h-full rounded-[26px] bg-gradient-to-b from-pink-50 to-surface flex flex-col items-center justify-center gap-3">
                 <IconBowl className="w-14 h-14 text-pink-500" />
                 <b className="font-display text-ink">EatNow</b>
               </div>
@@ -388,7 +393,7 @@ export default async function Home() {
           {testimonials.map((t) => (
             <div
               key={t.name}
-              className="bg-white rounded-[20px] p-7 shadow-[0_14px_30px_-18px_rgba(58,31,43,0.2)]"
+              className="bg-surface rounded-[20px] p-7 shadow-[0_14px_30px_-18px_rgba(58,31,43,0.2)]"
             >
               <div className="mb-3">
                 <Stars />
@@ -409,7 +414,7 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-ink text-white pt-14 pb-7 mt-10">
+      <footer className="bg-[#2b1620] text-white pt-14 pb-7 mt-10">
         <div className="max-w-[1160px] mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr] gap-9">
             <div>
