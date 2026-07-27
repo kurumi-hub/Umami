@@ -1,26 +1,119 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff6f8;
+  --foreground: #3a1f2b;
+
+  --pink-50: #fff0f4;
+  --pink-100: #ffe1ea;
+  --pink-300: #ffb8cf;
+  --pink-500: #ff6f91;
+  --pink-600: #ef5178;
+  --mango: #ffb347;
+  --mint: #a8e6c3;
+  --ink: #3a1f2b;
+  --ink-soft: #8c6b78;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-pink-50: var(--pink-50);
+  --color-pink-100: var(--pink-100);
+  --color-pink-300: var(--pink-300);
+  --color-pink-500: var(--pink-500);
+  --color-pink-600: var(--pink-600);
+  --color-mango: var(--mango);
+  --color-mint: var(--mint);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --font-display: var(--font-baloo);
+  --font-sans: var(--font-be-vietnam);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- signature: order-ticket torn edge ---------- */
+.ticket-edge::before,
+.ticket-edge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background-image: radial-gradient(
+    circle at 10px 7px,
+    var(--pink-50) 7px,
+    transparent 7.5px
+  );
+  background-size: 20px 14px;
+  background-repeat: repeat-x;
+}
+.ticket-edge::before {
+  top: -7px;
+}
+.ticket-edge::after {
+  bottom: -7px;
+  transform: rotate(180deg);
+}
+
+/* ---------- hero steam ---------- */
+@keyframes rise {
+  0% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-38px) scaleY(1.3);
+    opacity: 0;
+  }
+}
+.animate-steam {
+  animation: rise 3.2s ease-in-out infinite;
+}
+
+/* ---------- floating chips ---------- */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-bob {
+  animation: bob 4s ease-in-out infinite;
+}
+
+/* ---------- marquee ---------- */
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee-scroll 22s linear infinite;
 }
