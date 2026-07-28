@@ -267,7 +267,11 @@ export default async function RecipeDetailPage({
 
         {/* ACTIONS: shopping list / collection / report */}
         <div className="mt-5 flex flex-wrap items-center gap-2.5">
-          <ShoppingListButton recipeId={recipe.id} isLoggedIn={isLoggedIn} />
+          <ShoppingListButton
+            recipeId={recipe.id}
+            originalServings={recipe.servings}
+            isLoggedIn={isLoggedIn}
+          />
           <CollectionsMenu
             recipeId={recipe.id}
             slug={recipe.slug}

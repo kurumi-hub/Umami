@@ -153,7 +153,7 @@ export async function reportContent(
   return { error: null };
 }
 
-export async function addToShoppingList(recipeId: string) {
+export async function addToShoppingList(recipeId: string, targetServings?: number) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -163,6 +163,7 @@ export async function addToShoppingList(recipeId: string) {
 
   const { error } = await supabase.rpc("add_recipe_to_my_shopping_list", {
     p_recipe_id: recipeId,
+    p_target_servings: targetServings ?? null,
   });
 
   if (error) {
