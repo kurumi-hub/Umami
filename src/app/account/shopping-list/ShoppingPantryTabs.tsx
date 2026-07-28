@@ -6,6 +6,7 @@ import PantryManager from "./PantryManager";
 
 type ShoppingItem = {
   id: string;
+  ingredientId: string | null;
   name: string;
   aisle: string | null;
   quantity: number | null;

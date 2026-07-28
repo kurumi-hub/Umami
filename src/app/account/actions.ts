@@ -297,6 +297,35 @@ export async function clearCheckedItems() {
   return { error: null };
 }
 
+export async function clearAllItems() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+
+  const { data: lists } = await supabase
+    .from("shopping_lists")
+    .select("id")
+    .eq("user_id", user.id);
+
+  const listIds = (lists ?? []).map((l) => l.id);
+  if (listIds.length === 0) return { error: null };
+
+  const { error } = await supabase
+    .from("shopping_list_items")
+    .delete()
+    .in("list_id", listIds);
+
+  if (error) {
+    return { error: "Không thể xoá toàn bộ danh sách, thử lại sau." };
+  }
+
+  revalidatePath("/account/shopping-list");
+  return { error: null };
+}
+
 // ---------------------------------------------------------------------
 // Tủ lạnh của tôi (user_pantry) — RLS "own pantry" cho phép CRUD trực
 // tiếp cho hàng của chính mình.

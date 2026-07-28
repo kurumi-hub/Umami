@@ -4,6 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { IconTrash } from "@/app/icons";
 import {
   addCustomShoppingItem,
+  addPantryItem,
+  clearAllItems,
   clearCheckedItems,
   removeShoppingItem,
   toggleShoppingItem,
@@ -11,6 +13,7 @@ import {
 
 type Item = {
   id: string;
+  ingredientId: string | null;
   name: string;
   aisle: string | null;
   quantity: number | null;
@@ -31,6 +34,148 @@ function formatQty(qty: number | null, unit: string | null) {
   return `${rounded} ${unit || ""}`.trim();
 }
 
+function ItemRow({
+  item,
+  onToggle,
+  onRemove,
+}: {
+  item: Item;
+  onToggle: (item: Item) => void;
+  onRemove: (id: string) => void;
+}) {
+  const [pantryOpen, setPantryOpen] = useState(false);
+  const [addedToPantry, setAddedToPantry] = useState(false);
+  const [qty, setQty] = useState(item.quantity != null ? String(item.quantity) : "");
+  const [unit, setUnit] = useState(item.unit ?? "");
+  const [expiry, setExpiry] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const canAddToPantry = item.is_checked && item.ingredientId && !addedToPantry;
+
+  function handleConfirmPantry() {
+    if (!item.ingredientId) return;
+    setError(null);
+    const quantity = qty.trim() ? parseFloat(qty) : null;
+    startTransition(async () => {
+      const result = await addPantryItem(
+        item.ingredientId!,
+        quantity,
+        unit || null,
+        expiry || null
+      );
+      if (result.error) {
+        setError(result.error);
+      } else {
+        setAddedToPantry(true);
+        setPantryOpen(false);
+      }
+    });
+  }
+
+  return (
+    <li
+      className={`rounded-xl border px-4 py-2.5 transition-colors ${
+        item.is_checked
+          ? "border-pink-500/10 bg-pink-500/5 opacity-80"
+          : "border-pink-500/10 bg-surface"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={item.is_checked}
+          onChange={() => onToggle(item)}
+          className="h-4.5 w-4.5 shrink-0 rounded border-pink-300/70 text-pink-500 focus:ring-pink-500/40"
+        />
+        <div className="flex-1 min-w-0">
+          <span
+            className={`text-[14px] font-semibold ${item.is_checked ? "line-through" : ""}`}
+          >
+            {formatQty(item.quantity, item.unit)} {item.name}
+          </span>
+          {item.recipe_title && (
+            <span className="block text-[11.5px] text-ink-soft">
+              Từ: {item.recipe_title}
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => onRemove(item.id)}
+          aria-label="Xoá món"
+          className="shrink-0 text-ink-soft hover:text-pink-600 transition-colors"
+        >
+          <IconTrash className="h-4 w-4" />
+        </button>
+      </div>
+
+      {canAddToPantry && !pantryOpen && (
+        <button
+          type="button"
+          onClick={() => setPantryOpen(true)}
+          className="mt-2 ml-7 text-[12px] font-bold text-emerald-700 hover:underline"
+        >
+          + Thêm vào tủ lạnh
+        </button>
+      )}
+
+      {item.is_checked && addedToPantry && (
+        <span className="mt-2 ml-7 block text-[12px] font-semibold text-emerald-700">
+          Đã thêm vào tủ lạnh
+        </span>
+      )}
+
+      {pantryOpen && (
+        <div className="mt-2.5 ml-7 rounded-xl bg-mint/10 p-3">
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <input
+              type="number"
+              min={0}
+              step="any"
+              value={qty}
+              onChange={(e) => setQty(e.target.value)}
+              placeholder="Số lượng"
+              className="rounded-lg border border-pink-300/70 bg-surface px-2.5 py-1.5 text-[13px] outline-none focus:border-pink-500"
+            />
+            <input
+              type="text"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="Đơn vị (g, ml...)"
+              className="rounded-lg border border-pink-300/70 bg-surface px-2.5 py-1.5 text-[13px] outline-none focus:border-pink-500"
+            />
+          </div>
+          <input
+            type="date"
+            value={expiry}
+            onChange={(e) => setExpiry(e.target.value)}
+            className="mb-2 w-full rounded-lg border border-pink-300/70 bg-surface px-2.5 py-1.5 text-[13px] outline-none focus:border-pink-500"
+          />
+          {error && <p className="mb-2 text-[11.5px] text-pink-600">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleConfirmPantry}
+              disabled={pending}
+              className="rounded-full bg-emerald-600 px-4 py-1.5 text-[12px] font-bold text-white disabled:opacity-50"
+            >
+              Xác nhận
+            </button>
+            <button
+              type="button"
+              onClick={() => setPantryOpen(false)}
+              className="rounded-full border-2 border-pink-300 px-4 py-1.5 text-[12px] font-bold text-pink-600"
+            >
+              Huỷ
+            </button>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export default function ShoppingListClient({
   initialItems,
 }: {
@@ -39,6 +184,7 @@ export default function ShoppingListClient({
   const [items, setItems] = useState(initialItems);
   const [newItemName, setNewItemName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const grouped = useMemo(() => {
@@ -101,6 +247,7 @@ export default function ShoppingListClient({
         setItems((prev) => [
           {
             id: result.item!.id,
+            ingredientId: null,
             name: result.item!.custom_name || name,
             aisle: null,
             quantity: result.item!.quantity,
@@ -119,6 +266,23 @@ export default function ShoppingListClient({
     setItems((cur) => cur.filter((it) => !it.is_checked));
     startTransition(async () => {
       const result = await clearCheckedItems();
+      if (result.error) {
+        setItems(prev);
+        setError(result.error);
+      }
+    });
+  }
+
+  function handleClearAll() {
+    if (!confirmClearAll) {
+      setConfirmClearAll(true);
+      return;
+    }
+    const prev = items;
+    setItems([]);
+    setConfirmClearAll(false);
+    startTransition(async () => {
+      const result = await clearAllItems();
       if (result.error) {
         setItems(prev);
         setError(result.error);
@@ -149,19 +313,32 @@ export default function ShoppingListClient({
 
       {error && <p className="mb-4 text-[12.5px] text-pink-600">{error}</p>}
 
-      <div className="mb-5 flex items-center justify-between text-[13px] text-ink-soft">
+      <div className="mb-5 flex items-center justify-between text-[13px] text-ink-soft flex-wrap gap-2">
         <span>
           {uncheckedCount} món cần mua · {checkedCount} đã mua
         </span>
-        {checkedCount > 0 && (
-          <button
-            type="button"
-            onClick={handleClearChecked}
-            className="font-semibold text-pink-600 hover:underline"
-          >
-            Xoá các món đã mua
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {checkedCount > 0 && (
+            <button
+              type="button"
+              onClick={handleClearChecked}
+              className="font-semibold text-pink-600 hover:underline"
+            >
+              Xoá các món đã mua
+            </button>
+          )}
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className={`font-semibold hover:underline ${
+                confirmClearAll ? "text-pink-600" : "text-ink-soft"
+              }`}
+            >
+              {confirmClearAll ? "Bấm lần nữa để xoá tất cả" : "Xoá tất cả"}
+            </button>
+          )}
+        </div>
       </div>
 
       {items.length === 0 ? (
@@ -178,43 +355,12 @@ export default function ShoppingListClient({
               </h3>
               <ul className="flex flex-col gap-2">
                 {list.map((item) => (
-                  <li
+                  <ItemRow
                     key={item.id}
-                    className={`flex items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors ${
-                      item.is_checked
-                        ? "border-pink-500/10 bg-pink-500/5 opacity-60"
-                        : "border-pink-500/10 bg-surface"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.is_checked}
-                      onChange={() => handleToggle(item)}
-                      className="h-4.5 w-4.5 shrink-0 rounded border-pink-300/70 text-pink-500 focus:ring-pink-500/40"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span
-                        className={`text-[14px] font-semibold ${
-                          item.is_checked ? "line-through" : ""
-                        }`}
-                      >
-                        {formatQty(item.quantity, item.unit)} {item.name}
-                      </span>
-                      {item.recipe_title && (
-                        <span className="block text-[11.5px] text-ink-soft">
-                          Từ: {item.recipe_title}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(item.id)}
-                      aria-label="Xoá món"
-                      className="shrink-0 text-ink-soft hover:text-pink-600 transition-colors"
-                    >
-                      <IconTrash className="h-4 w-4" />
-                    </button>
-                  </li>
+                    item={item}
+                    onToggle={handleToggle}
+                    onRemove={handleRemove}
+                  />
                 ))}
               </ul>
             </div>

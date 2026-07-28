@@ -214,6 +214,25 @@ export default async function AccountPage() {
           <span className="text-pink-600 font-bold text-[13.5px]">Xem →</span>
         </Link>
 
+        {/* MEAL PLAN SUMMARY */}
+        <Link
+          href="/account/meal-plan"
+          className="mt-3 flex items-center justify-between gap-3 rounded-[20px] border border-pink-500/10 bg-surface px-5 py-4 hover:border-pink-500/30 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pink-100">
+              <IconClipboard className="h-5 w-5 text-pink-500" />
+            </div>
+            <div>
+              <b className="text-[14.5px] block">Kế hoạch bữa ăn</b>
+              <span className="text-[12.5px] text-ink-soft">
+                Lên lịch nấu ăn cho tuần
+              </span>
+            </div>
+          </div>
+          <span className="text-pink-600 font-bold text-[13.5px]">Xem →</span>
+        </Link>
+
         {/* MY RECIPES */}
         <div className="mt-9">
           <div className="mb-4 flex items-center justify-between gap-3">

@@ -27,7 +27,7 @@ export default async function ShoppingListPage() {
       ? supabase
           .from("shopping_list_items")
           .select(
-            "id, quantity, unit, is_checked, custom_name, created_at, ingredients(name, aisle), recipes(title)"
+            "id, ingredient_id, quantity, unit, is_checked, custom_name, created_at, ingredients(name, aisle), recipes(title)"
           )
           .eq("list_id", list.id)
           .order("is_checked", { ascending: true })
@@ -77,6 +77,7 @@ export default async function ShoppingListPage() {
             const recipe = Array.isArray(it.recipes) ? it.recipes[0] : it.recipes;
             return {
               id: it.id,
+              ingredientId: it.ingredient_id,
               name: it.custom_name || ingredient?.name || "Nguyên liệu",
               aisle: ingredient?.aisle ?? null,
               quantity: it.quantity,
