@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconBowl, IconCompass, IconUser, IconUsers } from "@/app/icons";
+import { IconBowl, IconCart, IconCompass, IconUser, IconUsers } from "@/app/icons";
 import { createClient } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import ThemeToggle from "@/app/ThemeToggle";
@@ -32,6 +32,17 @@ export default async function AppHeader({ active }: { active: NavKey }) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // RLS "own list items" đã tự giới hạn về đúng danh sách của user hiện
+  // tại, nên không cần lọc list_id thủ công ở đây.
+  let uncheckedCount = 0;
+  if (user) {
+    const { count } = await supabase
+      .from("shopping_list_items")
+      .select("id", { count: "exact", head: true })
+      .eq("is_checked", false);
+    uncheckedCount = count ?? 0;
+  }
+
   return (
     <header className="sticky top-0 z-40 bg-[rgba(255,246,248,0.85)] dark:bg-[rgba(32,17,24,0.85)] backdrop-blur-md border-b border-pink-500/15">
       <nav className="max-w-[1160px] mx-auto flex items-center justify-between px-6 py-4">
@@ -55,6 +66,21 @@ export default async function AppHeader({ active }: { active: NavKey }) {
         </div>
 
         <div className="flex items-center gap-3">
+          {user && (
+            <Link
+              href="/account/shopping-list"
+              aria-label="Danh sách đi chợ"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
+            >
+              <IconCart className="h-[19px] w-[19px]" />
+              {uncheckedCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white">
+                  {uncheckedCount > 99 ? "99+" : uncheckedCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           <ThemeToggle />
 
           {user ? (
