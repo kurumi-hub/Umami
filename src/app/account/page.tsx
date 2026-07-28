@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 import { createClient } from "@/utils/supabase/server";
@@ -109,9 +110,10 @@ export default async function AccountPage() {
                   className: "bg-pink-500/10 text-ink-soft",
                 };
                 return (
-                  <div
+                  <Link
                     key={r.id}
-                    className="flex items-center justify-between gap-3 rounded-[16px] border border-pink-500/10 bg-surface px-4 py-3"
+                    href={`/cong-thuc/${r.slug}`}
+                    className="flex items-center justify-between gap-3 rounded-[16px] border border-pink-500/10 bg-surface px-4 py-3 hover:border-pink-500/30 transition-colors"
                   >
                     <span className="text-[14px] font-semibold truncate">
                       {r.title}
@@ -121,7 +123,7 @@ export default async function AccountPage() {
                     >
                       {status.label}
                     </span>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

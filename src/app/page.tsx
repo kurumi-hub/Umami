@@ -118,16 +118,18 @@ function Logo({ light = false }: { light?: boolean }) {
 
 function RecipeCard({ r }: { r: RecipeRow }) {
   return (
-    <div className="group bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]">
+    <Link
+      href={`/cong-thuc/${r.slug}`}
+      className="group bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)] block"
+    >
       <div className="relative h-[150px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
         <IconBowl className="w-14 h-14 text-pink-400" />
-        <button
-          type="button"
-          aria-label="Lưu công thức"
+        <span
+          aria-hidden
           className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-pink-500 shadow-sm"
         >
           <IconBookmark className="w-4 h-4" />
-        </button>
+        </span>
         {r.difficulty && (
           <span className="absolute bottom-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink-soft">
             {diffLabels[r.difficulty] ?? r.difficulty}
@@ -150,7 +152,7 @@ function RecipeCard({ r }: { r: RecipeRow }) {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -412,9 +414,10 @@ export default async function Home() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {newFollowing.map((r) => (
-              <div
+              <Link
                 key={r.recipe_id}
-                className="bg-surface rounded-[22px] overflow-hidden border border-pink-500/10"
+                href={`/cong-thuc/${r.slug}`}
+                className="block bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
               >
                 <div className="h-[150px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
                   <IconBowl className="w-14 h-14 text-pink-400" />
@@ -427,7 +430,7 @@ export default async function Home() {
                     {r.author_name || "Ẩn danh"}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
