@@ -13,8 +13,8 @@ export default async function ResetPasswordPage({
       title="Đặt lại mật khẩu"
       subtitle={
         email
-          ? `Nhập mã 8 số đã gửi tới ${email} và mật khẩu mới`
-          : "Nhập mã xác nhận và mật khẩu mới"
+          ? `Nhập mã 8 số đã gửi tới ${email}`
+          : "Nhập mã xác nhận đã gửi tới email của bạn"
       }
       footer={null}
     >

@@ -167,14 +167,44 @@ export async function resendResetOtp(email: string): Promise<AuthState> {
   return null;
 }
 
-export async function resetPasswordWithOtp(
+export type VerifyResetOtpState = {
+  error?: string;
+  verified?: boolean;
+} | null;
+
+// Bước 1: chỉ xác minh mã OTP. Nếu đúng, phiên "recovery" được thiết lập
+// (qua cookie) và verified=true được trả về để client mới cho hiện form
+// đổi mật khẩu — không cho nhập mật khẩu mới trước khi mã đã đúng.
+export async function verifyResetOtp(
+  _prevState: VerifyResetOtpState,
+  formData: FormData
+): Promise<VerifyResetOtpState> {
+  const supabase = await createClient();
+
+  const email = String(formData.get("email") || "").trim();
+  const token = String(formData.get("token") || "").trim();
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "recovery",
+  });
+
+  if (error) {
+    return { error: "Mã xác nhận không đúng hoặc đã hết hạn." };
+  }
+
+  return { verified: true };
+}
+
+// Bước 2: đổi mật khẩu, chỉ được gọi sau khi verifyResetOtp() đã thành
+// công ở trên (dựa vào phiên "recovery" hiện có, không cần token nữa).
+export async function resetPassword(
   _prevState: AuthState,
   formData: FormData
 ): Promise<AuthState> {
   const supabase = await createClient();
 
-  const email = String(formData.get("email") || "").trim();
-  const token = String(formData.get("token") || "").trim();
   const password = String(formData.get("password") || "");
   const confirmPassword = String(formData.get("confirmPassword") || "");
 
@@ -186,21 +216,17 @@ export async function resetPasswordWithOtp(
     return { error: "Xác nhận mật khẩu không khớp." };
   }
 
-  // Xác minh mã OTP để mở phiên "recovery", sau đó mới được phép đổi
-  // mật khẩu bằng updateUser().
-  const { error: otpError } = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "recovery",
-  });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (otpError) {
-    return { error: "Mã xác nhận không đúng hoặc đã hết hạn." };
+  if (!user) {
+    return { error: "Phiên xác minh đã hết hạn, vui lòng nhập lại mã." };
   }
 
-  const { error: updateError } = await supabase.auth.updateUser({ password });
+  const { error } = await supabase.auth.updateUser({ password });
 
-  if (updateError) {
+  if (error) {
     return { error: "Không thể đặt lại mật khẩu, vui lòng thử lại." };
   }
 
