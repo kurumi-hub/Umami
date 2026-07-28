@@ -7,10 +7,16 @@ import {
   IconChefHat,
   IconClock,
   IconFlame,
-  IconStar,
   IconUsers,
 } from "@/app/icons";
 import SaveButton from "./SaveButton";
+import RatingWidget from "./RatingWidget";
+import FollowButton from "./FollowButton";
+import ShoppingListButton from "./ShoppingListButton";
+import CollectionsMenu from "./CollectionsMenu";
+import ReportButton from "./ReportButton";
+import IngredientsPanel from "./IngredientsPanel";
+import TipsSection from "./TipsSection";
 
 type Ingredient = {
   id: string;
@@ -22,6 +28,8 @@ type Ingredient = {
   is_optional: boolean;
   position: number;
   section_id: string | null;
+  in_pantry: boolean;
+  is_allergen: boolean;
 };
 
 type Section = { id: string; name: string | null; position: number };
@@ -35,6 +43,8 @@ type Step = {
 };
 
 type Tag = { id: string; type: string; name: string; slug: string };
+
+type UnitConversion = { from_unit: string; to_unit: string; factor: number };
 
 type Nutrition = {
   calories: number | null;
@@ -52,10 +62,13 @@ type Tip = {
   body: string;
   image_url: string | null;
   like_count: number;
+  reply_count: number;
   created_at: string;
+  author_id: string;
   author_name: string | null;
-  author_username: string | null;
+  author_username: string;
   author_avatar: string | null;
+  liked_by_me: boolean;
 };
 
 type RecipeDetail = {
@@ -77,13 +90,17 @@ type RecipeDetail = {
   view_count: number;
   is_own_recipe: boolean;
   author: { id: string; username: string; display_name: string | null; avatar_url: string | null } | null;
+  follow_state: "accepted" | "pending" | null;
   ingredients: Ingredient[];
   sections: Section[];
   steps: Step[];
   tags: Tag[];
+  unit_conversions: UnitConversion[];
   nutrition: Nutrition;
   recent_tips: Tip[];
+  my_rating: number | null;
   is_saved: boolean;
+  has_allergen_conflict: boolean;
 };
 
 const diffLabels: Record<string, string> = {
@@ -119,22 +136,6 @@ function formatMinutes(min: number | null) {
   return m ? `${h}g ${m}p` : `${h} giờ`;
 }
 
-function formatQuantity(q: number | null) {
-  if (q === null) return "";
-  return Number.isInteger(q) ? String(q) : String(q).replace(/\.?0+$/, "");
-}
-
-function Stars({ rating }: { rating: number }) {
-  const rounded = Math.round(rating);
-  return (
-    <div className="flex gap-0.5 text-mango">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <IconStar key={i} className="w-4 h-4" filled={i < rounded} />
-      ))}
-    </div>
-  );
-}
-
 export default async function RecipeDetailPage({
   params,
 }: {
@@ -166,15 +167,8 @@ export default async function RecipeDetailPage({
       ? parseFloat(recipe.avg_rating)
       : recipe.avg_rating ?? 0;
 
-  const ingredientsBySection = new Map<string | null, Ingredient[]>();
-  for (const ing of recipe.ingredients) {
-    const key = ing.section_id;
-    if (!ingredientsBySection.has(key)) ingredientsBySection.set(key, []);
-    ingredientsBySection.get(key)!.push(ing);
-  }
-  const sectionName = new Map(recipe.sections.map((s) => [s.id, s.name]));
-
   const statusNotice = statusNotices[recipe.status];
+  const isLoggedIn = Boolean(user);
 
   return (
     <div className="flex flex-col flex-1">
@@ -193,6 +187,13 @@ export default async function RecipeDetailPage({
             className={`mb-6 rounded-2xl px-4 py-3 text-[13.5px] font-semibold ${statusNotice.className}`}
           >
             {statusNotice.label}
+          </div>
+        )}
+
+        {recipe.has_allergen_conflict && (
+          <div className="mb-6 rounded-2xl bg-pink-500/15 px-4 py-3 text-[13.5px] font-semibold text-pink-600">
+            ⚠️ Công thức này chứa nguyên liệu bạn đã khai báo dị ứng. Xem kỹ
+            danh sách nguyên liệu bên dưới trước khi nấu.
           </div>
         )}
 
@@ -221,26 +222,65 @@ export default async function RecipeDetailPage({
             recipeId={recipe.id}
             slug={recipe.slug}
             initialSaved={recipe.is_saved}
-            isLoggedIn={Boolean(user)}
+            isLoggedIn={isLoggedIn}
+          />
+        </div>
+
+        {/* RATING */}
+        <div className="mt-4">
+          <RatingWidget
+            recipeId={recipe.id}
+            slug={recipe.slug}
+            avgRating={avgRating}
+            ratingCount={recipe.rating_count}
+            initialMyRating={recipe.my_rating}
+            isLoggedIn={isLoggedIn}
           />
         </div>
 
         {/* AUTHOR */}
         {recipe.author && (
-          <div className="mt-5 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-100">
-              <IconChefHat className="h-5 w-5 text-pink-500" />
+          <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-100">
+                <IconChefHat className="h-5 w-5 text-pink-500" />
+              </div>
+              <div>
+                <b className="text-[14px]">
+                  {recipe.author.display_name || recipe.author.username}
+                </b>
+                <span className="ml-2 text-[13px] text-ink-soft">
+                  @{recipe.author.username}
+                </span>
+              </div>
             </div>
-            <div>
-              <b className="text-[14px]">
-                {recipe.author.display_name || recipe.author.username}
-              </b>
-              <span className="ml-2 text-[13px] text-ink-soft">
-                @{recipe.author.username}
-              </span>
-            </div>
+            {!recipe.is_own_recipe && (
+              <FollowButton
+                authorId={recipe.author.id}
+                slug={recipe.slug}
+                initialState={recipe.follow_state}
+                isLoggedIn={isLoggedIn}
+              />
+            )}
           </div>
         )}
+
+        {/* ACTIONS: shopping list / collection / report */}
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          <ShoppingListButton recipeId={recipe.id} isLoggedIn={isLoggedIn} />
+          <CollectionsMenu
+            recipeId={recipe.id}
+            slug={recipe.slug}
+            isLoggedIn={isLoggedIn}
+          />
+          <div className="ml-auto">
+            <ReportButton
+              targetType="recipe"
+              targetId={recipe.id}
+              isLoggedIn={isLoggedIn}
+            />
+          </div>
+        </div>
 
         {/* META */}
         <div className="mt-7 grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -257,20 +297,13 @@ export default async function RecipeDetailPage({
             <span className="text-[11.5px] text-ink-soft">Khẩu phần</span>
           </div>
           <div className="rounded-[16px] bg-pink-50 px-3 py-4 text-center">
-            <div className="flex items-center justify-center mb-1">
-              <Stars rating={avgRating} />
-            </div>
-            <b className="block text-[14px]">
-              {avgRating > 0 ? avgRating.toFixed(1) : "Chưa có"}
-            </b>
-            <span className="text-[11.5px] text-ink-soft">
-              {recipe.rating_count} đánh giá
-            </span>
-          </div>
-          <div className="rounded-[16px] bg-pink-50 px-3 py-4 text-center">
             <IconFlame className="h-5 w-5 text-pink-500 mx-auto mb-1" />
             <b className="block text-[14px]">{recipe.save_count}</b>
             <span className="text-[11.5px] text-ink-soft">Lượt lưu</span>
+          </div>
+          <div className="rounded-[16px] bg-pink-50 px-3 py-4 text-center">
+            <b className="block text-[14px]">{recipe.view_count}</b>
+            <span className="text-[11.5px] text-ink-soft">Lượt xem</span>
           </div>
         </div>
 
@@ -293,43 +326,13 @@ export default async function RecipeDetailPage({
           <h2 className="font-display font-extrabold text-[20px] mb-4">
             Nguyên liệu
           </h2>
-          {recipe.ingredients.length === 0 ? (
-            <p className="text-[14px] text-ink-soft">
-              Công thức chưa có danh sách nguyên liệu.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-6">
-              {Array.from(ingredientsBySection.entries()).map(([secId, items]) => (
-                <div key={secId ?? "none"}>
-                  {secId && sectionName.get(secId) && (
-                    <h3 className="mb-2.5 text-[14.5px] font-bold text-pink-600">
-                      {sectionName.get(secId)}
-                    </h3>
-                  )}
-                  <ul className="flex flex-col gap-2">
-                    {items
-                      .sort((a, b) => a.position - b.position)
-                      .map((ing) => (
-                        <li
-                          key={ing.id}
-                          className="flex items-baseline gap-2 text-[14.5px] rounded-xl bg-surface border border-pink-500/10 px-4 py-2.5"
-                        >
-                          <span className="font-bold text-ink min-w-[70px]">
-                            {formatQuantity(ing.quantity)} {ing.unit || ""}
-                          </span>
-                          <span>{ing.raw_text || ing.name}</span>
-                          {ing.is_optional && (
-                            <span className="text-[12px] text-ink-soft">
-                              (tuỳ chọn)
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
+          <IngredientsPanel
+            ingredients={recipe.ingredients}
+            sections={recipe.sections}
+            originalServings={recipe.servings}
+            servingsUnit={recipe.servings_unit}
+            unitConversions={recipe.unit_conversions}
+          />
         </section>
 
         {/* STEPS */}
@@ -392,35 +395,17 @@ export default async function RecipeDetailPage({
           </section>
         )}
 
-        {/* TIPS */}
+        {/* TIPS / COMMENTS */}
         <section className="mt-10">
           <h2 className="font-display font-extrabold text-[20px] mb-4">
             Mẹo từ cộng đồng
           </h2>
-          {recipe.recent_tips.length === 0 ? (
-            <p className="text-[14px] text-ink-soft">
-              Chưa có mẹo nào cho công thức này. Hãy là người đầu tiên chia sẻ!
-            </p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {recipe.recent_tips.map((tip) => (
-                <div
-                  key={tip.id}
-                  className="rounded-[18px] border border-pink-500/10 bg-surface px-4 py-3.5"
-                >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <b className="text-[13.5px]">
-                      {tip.author_name || tip.author_username}
-                    </b>
-                    <span className="text-[12px] text-ink-soft">
-                      @{tip.author_username}
-                    </span>
-                  </div>
-                  <p className="text-[14px] leading-relaxed">{tip.body}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          <TipsSection
+            recipeId={recipe.id}
+            slug={recipe.slug}
+            initialTips={recipe.recent_tips}
+            isLoggedIn={isLoggedIn}
+          />
         </section>
       </div>
     </div>
