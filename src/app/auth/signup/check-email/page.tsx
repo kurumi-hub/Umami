@@ -7,7 +7,7 @@ export default function CheckEmailPage() {
       title="Kiểm tra email của bạn"
       subtitle="EatNow đã gửi một liên kết xác nhận"
       footer={
-        <Link href="/login" className="font-semibold text-pink-600">
+        <Link href="/auth/login" className="font-semibold text-pink-600">
           Quay lại đăng nhập
         </Link>
       }

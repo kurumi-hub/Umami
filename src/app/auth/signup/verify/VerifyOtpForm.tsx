@@ -63,7 +63,7 @@ export default function VerifyOtpForm({ email }: { email: string }) {
       </button>
 
       <Link
-        href="/signup"
+        href="/auth/signup"
         className="text-[13px] text-ink-soft hover:text-pink-600"
       >
         ← Dùng email khác

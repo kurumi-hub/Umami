@@ -178,13 +178,13 @@ export default async function Home() {
             ) : (
               <div className="flex items-center gap-3">
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   className="hidden sm:inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[14px] font-bold text-ink hover:text-pink-600 transition-colors"
                 >
                   Đăng nhập
                 </Link>
                 <Link
-                  href="/signup"
+                  href="/auth/signup"
                   className="inline-flex items-center justify-center rounded-full bg-pink-500 px-[22px] py-2.5 text-[14px] font-bold text-white shadow-[0_10px_24px_-8px_rgba(255,111,145,0.65)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-8px_rgba(255,111,145,0.75)]"
                 >
                   Đăng ký

@@ -17,5 +17,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  redirect("/login?error=link-het-han");
+  redirect("/auth/login?error=link-het-han");
 }

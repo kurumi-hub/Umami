@@ -16,7 +16,7 @@ export default function SignupPage() {
       footer={
         <>
           Đã có tài khoản?{" "}
-          <Link href="/login" className="font-semibold text-pink-600">
+          <Link href="/auth/login" className="font-semibold text-pink-600">
             Đăng nhập
           </Link>
         </>
@@ -24,6 +24,13 @@ export default function SignupPage() {
     >
       <form action={formAction} className="flex flex-col gap-4">
         <AuthField label="Họ và tên" name="name" placeholder="Nguyễn Văn A" autoComplete="name" />
+        <AuthField
+          label="Username"
+          name="username"
+          placeholder="nguyenvana"
+          autoComplete="username"
+          hint="3-30 ký tự, chỉ chữ thường, số và dấu gạch dưới."
+        />
         <AuthField
           label="Email"
           name="email"
@@ -36,6 +43,13 @@ export default function SignupPage() {
           name="password"
           type="password"
           placeholder="Tối thiểu 6 ký tự"
+          autoComplete="new-password"
+        />
+        <AuthField
+          label="Xác nhận mật khẩu"
+          name="confirmPassword"
+          type="password"
+          placeholder="Nhập lại mật khẩu"
           autoComplete="new-password"
         />
 
