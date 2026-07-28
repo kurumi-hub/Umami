@@ -31,8 +31,17 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Bảo vệ các route cần đăng nhập, ví dụ /account
-  if (!user && request.nextUrl.pathname.startsWith("/account")) {
+  // Bảo vệ các route cần đăng nhập, ví dụ /account — TRỪ trang chi tiết
+  // 1 bộ sưu tập (/account/collections/[id]) vì đó có thể là bộ sưu tập
+  // CÔNG KHAI mà khách chưa đăng nhập cũng cần xem được (từ trang khám
+  // phá /bo-suu-tap). Trang đó tự xử lý quyền riêng qua RLS + kiểm tra
+  // is_public ở phía server, không cần middleware chặn trước.
+  const isAccountRoute = request.nextUrl.pathname.startsWith("/account");
+  const isPublicCollectionDetail = /^\/account\/collections\/[^/]+$/.test(
+    request.nextUrl.pathname
+  );
+
+  if (!user && isAccountRoute && !isPublicCollectionDetail) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

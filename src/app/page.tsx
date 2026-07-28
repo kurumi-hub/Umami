@@ -4,6 +4,7 @@ import {
   IconBowl,
   IconCake,
   IconChefHat,
+  IconClipboard,
   IconClock,
   IconFlame,
   IconFridge,
@@ -67,6 +68,17 @@ type CookProfile = {
   username: string;
   display_name: string | null;
   recipe_count: number;
+};
+
+type FeaturedCollection = {
+  collection_id: string;
+  name: string;
+  cover_url: string | null;
+  recipe_count: number;
+  follower_count: number;
+  owner_id: string;
+  owner_name: string | null;
+  owner_username: string;
 };
 
 const diffLabels: Record<string, string> = {
@@ -237,12 +249,14 @@ export default async function Home() {
     { data: quick },
     { data: popularTags },
     { data: randomPicks },
+    { data: featuredCollections },
     { count: totalPublished },
   ] = await Promise.all([
     supabase.rpc("trending_recipes", { lim: 8 }),
     supabase.rpc("quick_recipes", { max_minutes: 30, lim: 4 }),
     supabase.rpc("popular_tags", { lim: 8 }),
     supabase.rpc("random_recipes", { lim: 4 }),
+    supabase.rpc("featured_collections", { lim: 4 }),
     supabase
       .from("recipes")
       .select("id", { count: "exact", head: true })
@@ -569,6 +583,58 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* FEATURED COLLECTIONS */}
+      {featuredCollections && featuredCollections.length > 0 && (
+        <section className="py-20 max-w-[1160px] mx-auto px-6 w-full">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-3">
+            <div>
+              <div className="text-pink-600 font-bold text-[13px] uppercase tracking-wider">
+                Cộng đồng
+              </div>
+              <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+                Bộ sưu tập nổi bật
+              </h2>
+            </div>
+            <Link
+              href="/bo-suu-tap"
+              className="text-[14px] font-bold text-pink-600 hover:underline"
+            >
+              Xem tất cả →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {(featuredCollections as FeaturedCollection[]).map((c) => (
+              <Link
+                key={c.collection_id}
+                href={`/account/collections/${c.collection_id}`}
+                className="bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)] block"
+              >
+                <div className="relative h-[130px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
+                  {c.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.cover_url}
+                      alt={c.name}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <IconClipboard className="w-10 h-10 text-pink-400" />
+                  )}
+                </div>
+                <div className="p-4">
+                  <h4 className="text-[15px] font-bold leading-snug line-clamp-2">
+                    {c.name}
+                  </h4>
+                  <p className="mt-1 text-[12px] text-ink-soft">
+                    {c.owner_name || c.owner_username} · {c.recipe_count} công thức
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* FOOTER */}
       <footer className="bg-[#2b1620] text-white pt-14 pb-7 mt-6">
         <div className="max-w-[1160px] mx-auto px-6">
@@ -598,6 +664,11 @@ export default async function Home() {
                 <li>
                   <Link href="/cong-dong" className="hover:text-white transition-colors">
                     Cộng đồng
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/bo-suu-tap" className="hover:text-white transition-colors">
+                    Bộ sưu tập công khai
                   </Link>
                 </li>
               </ul>

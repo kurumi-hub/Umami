@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 import { createClient } from "@/utils/supabase/server";
-import ShoppingListClient from "./ShoppingListClient";
+import ShoppingPantryTabs from "./ShoppingPantryTabs";
 
 export default async function ShoppingListPage() {
   const supabase = await createClient();
@@ -22,16 +22,26 @@ export default async function ShoppingListPage() {
     .limit(1)
     .maybeSingle();
 
-  const { data: items } = list
-    ? await supabase
-        .from("shopping_list_items")
-        .select(
-          "id, quantity, unit, is_checked, custom_name, created_at, ingredients(name, aisle), recipes(title)"
-        )
-        .eq("list_id", list.id)
-        .order("is_checked", { ascending: true })
-        .order("created_at", { ascending: false })
-    : { data: [] };
+  const [{ data: items }, { data: pantryRows }] = await Promise.all([
+    list
+      ? supabase
+          .from("shopping_list_items")
+          .select(
+            "id, quantity, unit, is_checked, custom_name, created_at, ingredients(name, aisle), recipes(title)"
+          )
+          .eq("list_id", list.id)
+          .order("is_checked", { ascending: true })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    supabase
+      .from("user_pantry")
+      .select("ingredient_id, ingredients(id, name)")
+      .eq("user_id", user.id),
+  ]);
+
+  const pantry = (pantryRows ?? [])
+    .map((row) => (Array.isArray(row.ingredients) ? row.ingredients[0] : row.ingredients))
+    .filter(Boolean) as { id: string; name: string }[];
 
   return (
     <div className="flex flex-col flex-1">
@@ -46,10 +56,10 @@ export default async function ShoppingListPage() {
         </Link>
 
         <h1 className="font-display font-extrabold text-[26px] sm:text-[32px] mb-6">
-          Danh sách đi chợ
+          Đi chợ &amp; Tủ lạnh
         </h1>
 
-        <ShoppingListClient
+        <ShoppingPantryTabs
           initialItems={(items ?? []).map((it) => {
             const ingredient = Array.isArray(it.ingredients)
               ? it.ingredients[0]
@@ -65,6 +75,7 @@ export default async function ShoppingListPage() {
               recipe_title: recipe?.title ?? null,
             };
           })}
+          initialPantry={pantry}
         />
       </div>
     </div>

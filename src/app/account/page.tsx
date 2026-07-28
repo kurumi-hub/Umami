@@ -110,7 +110,7 @@ export default async function AccountPage() {
   const [{ data: collections }, { count: collectionsCount }] = await Promise.all([
     supabase
       .from("collections")
-      .select("id, name, is_public, recipe_count")
+      .select("id, name, is_public, recipe_count, cover_url")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })
       .limit(4),
@@ -203,7 +203,7 @@ export default async function AccountPage() {
               <IconCart className="h-5 w-5 text-pink-500" />
             </div>
             <div>
-              <b className="text-[14.5px] block">Danh sách đi chợ</b>
+              <b className="text-[14.5px] block">Đi chợ &amp; Tủ lạnh</b>
               <span className="text-[12.5px] text-ink-soft">
                 {uncheckedShoppingCount > 0
                   ? `Còn ${uncheckedShoppingCount} món chưa mua`
@@ -362,7 +362,16 @@ export default async function AccountPage() {
                   className="bg-surface rounded-[20px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1 hover:shadow-[0_16px_30px_-18px_rgba(255,111,145,0.5)] block"
                 >
                   <div className="relative h-[90px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
-                    <IconClipboard className="w-8 h-8 text-pink-400" />
+                    {c.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.cover_url}
+                        alt={c.name}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <IconClipboard className="w-8 h-8 text-pink-400" />
+                    )}
                     <span className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-surface/90 px-2 py-1 text-[10px] font-bold text-ink-soft">
                       {c.is_public ? (
                         <IconGlobe className="h-3 w-3" />

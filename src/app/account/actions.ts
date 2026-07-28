@@ -79,6 +79,87 @@ export async function updateCollectionVisibility(
   return { error: null };
 }
 
+export async function updateCollectionDetails(
+  collectionId: string,
+  name: string,
+  description: string
+) {
+  const supabase = await createClient();
+
+  if (!name.trim()) {
+    return { error: "Tên bộ sưu tập không được để trống." };
+  }
+
+  const { error } = await supabase
+    .from("collections")
+    .update({ name: name.trim(), description: description.trim() || null })
+    .eq("id", collectionId);
+
+  if (error) {
+    const msg =
+      error.code === "23505"
+        ? "Bạn đã có bộ sưu tập trùng tên này rồi."
+        : "Không thể lưu, thử lại sau.";
+    return { error: msg };
+  }
+
+  revalidatePath(`/account/collections/${collectionId}`);
+  revalidatePath("/account");
+  return { error: null };
+}
+
+export async function reorderCollection(collectionId: string, recipeIds: string[]) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("reorder_collection", {
+    p_collection_id: collectionId,
+    p_recipe_ids: recipeIds,
+  });
+
+  if (error) {
+    return { error: "Không thể lưu thứ tự mới, thử lại sau." };
+  }
+
+  revalidatePath(`/account/collections/${collectionId}`);
+  return { error: null };
+}
+
+export async function toggleCollectionFollow(collectionId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập.", following: false };
+
+  const { data: existing } = await supabase
+    .from("collection_followers")
+    .select("collection_id")
+    .eq("collection_id", collectionId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from("collection_followers")
+      .delete()
+      .eq("collection_id", collectionId)
+      .eq("user_id", user.id);
+    if (error) return { error: "Không thể bỏ theo dõi, thử lại sau.", following: true };
+    revalidatePath(`/account/collections/${collectionId}`);
+    revalidatePath("/bo-suu-tap");
+    return { error: null, following: false };
+  }
+
+  const { error } = await supabase
+    .from("collection_followers")
+    .insert({ collection_id: collectionId, user_id: user.id });
+  if (error) return { error: "Không thể theo dõi, thử lại sau.", following: false };
+  revalidatePath(`/account/collections/${collectionId}`);
+  revalidatePath("/bo-suu-tap");
+  return { error: null, following: true };
+}
+
 export async function removeRecipeFromCollection(
   collectionId: string,
   recipeId: string
@@ -213,5 +294,57 @@ export async function clearCheckedItems() {
   }
 
   revalidatePath("/account/shopping-list");
+  return { error: null };
+}
+
+// ---------------------------------------------------------------------
+// Tủ lạnh của tôi (user_pantry) — RLS "own pantry" cho phép CRUD trực
+// tiếp cho hàng của chính mình.
+// ---------------------------------------------------------------------
+
+export async function addPantryItem(ingredientId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+
+  const { error } = await supabase
+    .from("user_pantry")
+    .upsert(
+      { user_id: user.id, ingredient_id: ingredientId },
+      { onConflict: "user_id,ingredient_id" }
+    );
+
+  if (error) {
+    return { error: "Không thể thêm vào tủ lạnh, thử lại sau." };
+  }
+
+  revalidatePath("/account/shopping-list");
+  revalidatePath("/");
+  return { error: null };
+}
+
+export async function removePantryItem(ingredientId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+
+  const { error } = await supabase
+    .from("user_pantry")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("ingredient_id", ingredientId);
+
+  if (error) {
+    return { error: "Không thể xoá, thử lại sau." };
+  }
+
+  revalidatePath("/account/shopping-list");
+  revalidatePath("/");
   return { error: null };
 }
