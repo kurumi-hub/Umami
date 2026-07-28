@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { IconBowl, IconClock } from "@/app/icons";
 import CollectionDetailActions from "./CollectionDetailActions";
 import RemoveRecipeButton from "./RemoveRecipeButton";
+import AddRecipesPanel from "./AddRecipesPanel";
 
 const diffLabels: Record<string, string> = {
   easy: "Dễ",
@@ -66,6 +67,66 @@ export default async function CollectionDetailPage({
     difficulty: string | null;
   }[];
 
+  // Chuẩn bị danh sách ứng viên để thêm vào bộ sưu tập: công thức của
+  // chính mình + công thức đã lưu, gộp lại và loại trùng. Chỉ cần tải
+  // khi là chủ sở hữu (người khác không có quyền thêm/bớt).
+  let candidates: {
+    id: string;
+    title: string;
+    slug: string;
+    source: "mine" | "saved";
+    in_collection: boolean;
+  }[] = [];
+
+  if (isOwner) {
+    const inCollectionIds = new Set(recipes.map((r) => r.id));
+
+    const [{ data: mine }, { data: savedRows }] = await Promise.all([
+      supabase
+        .from("recipes")
+        .select("id, title, slug")
+        .eq("author_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("saved_recipes")
+        .select("recipe_id, recipes(id, title, slug)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(200),
+    ]);
+
+    const savedRecipes = (savedRows ?? [])
+      .map((row) => (Array.isArray(row.recipes) ? row.recipes[0] : row.recipes))
+      .filter(Boolean) as { id: string; title: string; slug: string }[];
+
+    const seen = new Set<string>();
+    candidates = [];
+
+    for (const r of mine ?? []) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      candidates.push({
+        id: r.id,
+        title: r.title,
+        slug: r.slug,
+        source: "mine",
+        in_collection: inCollectionIds.has(r.id),
+      });
+    }
+    for (const r of savedRecipes) {
+      if (seen.has(r.id)) continue;
+      seen.add(r.id);
+      candidates.push({
+        id: r.id,
+        title: r.title,
+        slug: r.slug,
+        source: "saved",
+        in_collection: inCollectionIds.has(r.id),
+      });
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1">
       <AppHeader active="account" />
@@ -94,24 +155,27 @@ export default async function CollectionDetailPage({
             </p>
           </div>
           {isOwner && (
-            <CollectionDetailActions
-              collectionId={collection.id}
-              initialIsPublic={collection.is_public}
-            />
+            <div className="flex items-center gap-2.5">
+              <AddRecipesPanel collectionId={collection.id} candidates={candidates} />
+              <CollectionDetailActions
+                collectionId={collection.id}
+                initialIsPublic={collection.is_public}
+              />
+            </div>
           )}
         </div>
 
         {recipes.length === 0 ? (
           <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
-            Bộ sưu tập chưa có công thức nào. Vào trang chi tiết công thức và
-            bấm &quot;Thêm vào bộ sưu tập&quot; để thêm vào đây.
+            Bộ sưu tập chưa có công thức nào.
+            {isOwner && ' Bấm "Thêm công thức" ở trên để bắt đầu.'}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {recipes.map((r) => (
               <div
                 key={r.id}
-                className="relative bg-surface rounded-[22px] overflow-hidden border border-pink-500/10"
+                className="relative bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
               >
                 {isOwner && (
                   <RemoveRecipeButton collectionId={collection.id} recipeId={r.id} />

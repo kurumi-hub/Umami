@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { IconPlus } from "@/app/icons";
+import { IconPlus, IconX } from "@/app/icons";
 import {
   getMyCollectionsForRecipe,
   toggleCollectionRecipe,
@@ -33,9 +33,32 @@ export default function CollectionsMenu({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
+
+  // Đóng dropdown khi bấm ra ngoài hoặc nhấn Esc — trước đây chỉ đóng
+  // được bằng cách bấm lại đúng nút mở, dễ gây cảm giác "không tắt được".
+  useEffect(() => {
+    if (!open) return;
+
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
 
   async function handleOpen() {
     if (!isLoggedIn) {
@@ -111,7 +134,7 @@ export default function CollectionsMenu({
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <button
         type="button"
         onClick={handleOpen}
@@ -122,6 +145,20 @@ export default function CollectionsMenu({
 
       {open && (
         <div className="absolute right-0 z-20 mt-2 w-[270px] rounded-2xl border border-pink-500/15 bg-surface p-3 shadow-[0_18px_40px_-16px_rgba(58,31,43,0.35)]">
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className="text-[12.5px] font-bold text-ink-soft">
+              Bộ sưu tập của bạn
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Đóng"
+              className="text-ink-soft hover:text-pink-600"
+            >
+              <IconX className="h-4 w-4" />
+            </button>
+          </div>
+
           {loading && (
             <p className="px-2 py-3 text-[13px] text-ink-soft">Đang tải...</p>
           )}
