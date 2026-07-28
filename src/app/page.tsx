@@ -329,9 +329,10 @@ export default async function Home() {
               {(popularTags as PopularTag[]).map((tag, i) => {
                 const Icon = tagIcons[tag.slug] ?? IconBowl;
                 return (
-                  <div
+                  <Link
                     key={tag.tag_id}
-                    className="bg-surface rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
+                    href={`/danh-muc/${tag.slug}?type=${tag.type}`}
+                    className="bg-surface rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)] block"
                   >
                     <div
                       className={`w-16 h-16 rounded-[18px] mx-auto mb-3.5 flex items-center justify-center ${tagBgs[i % tagBgs.length]}`}
@@ -342,7 +343,7 @@ export default async function Home() {
                     <span className="text-[12.5px] text-ink-soft">
                       {tag.recipe_count}+ công thức
                     </span>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
