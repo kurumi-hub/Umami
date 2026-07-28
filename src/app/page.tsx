@@ -6,6 +6,7 @@ import {
   IconChefHat,
   IconClock,
   IconFlame,
+  IconFridge,
   IconLeaf,
   IconPizza,
   IconRiceBowl,
@@ -40,6 +41,17 @@ type FollowingRecipeRow = {
   thumbnail_url: string | null;
   author_name: string | null;
   published_at: string;
+};
+
+type PantryRecipeRow = {
+  recipe_id: string;
+  title: string;
+  slug: string;
+  thumbnail_url: string | null;
+  total_time_min: number | null;
+  difficulty: string | null;
+  match_pct: number | string | null;
+  missing_count: number | null;
 };
 
 type PopularTag = {
@@ -156,6 +168,56 @@ function RecipeCard({ r }: { r: RecipeRow }) {
   );
 }
 
+function formatMatchPct(pct: number | string | null) {
+  const n = typeof pct === "string" ? parseFloat(pct) : pct;
+  return n ? Math.round(n * 100) : 0;
+}
+
+function PantryRecipeCard({ r }: { r: PantryRecipeRow }) {
+  const pct = formatMatchPct(r.match_pct);
+  const isFullMatch = !r.missing_count;
+  return (
+    <Link
+      href={`/cong-thuc/${r.slug}`}
+      className="group bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)] block"
+    >
+      <div className="relative h-[150px] bg-gradient-to-br from-[#e3f6e8] to-[#f3fbf5] dark:from-[#1f3a2b] dark:to-transparent flex items-center justify-center">
+        <IconFridge className="w-14 h-14 text-emerald-500/70" />
+        <span
+          className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[11px] font-bold shadow-sm ${
+            isFullMatch
+              ? "bg-emerald-500 text-white"
+              : "bg-surface/90 text-emerald-600"
+          }`}
+        >
+          {isFullMatch ? "Đủ nguyên liệu" : `${pct}% khớp`}
+        </span>
+        {r.difficulty && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink-soft">
+            {diffLabels[r.difficulty] ?? r.difficulty}
+          </span>
+        )}
+      </div>
+      <div className="p-4">
+        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">{r.title}</h4>
+        <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">
+          <span className="flex items-center gap-1">
+            <IconClock className="w-3.5 h-3.5" />
+            {formatMinutes(r.total_time_min)}
+          </span>
+          {!isFullMatch && r.missing_count ? (
+            <span className="text-pink-500 font-semibold">
+              Thiếu {r.missing_count} nguyên liệu
+            </span>
+          ) : (
+            <span className="text-emerald-600 font-semibold">Nấu ngay được</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
@@ -190,14 +252,17 @@ export default async function Home() {
 
   let forYou: RecipeRow[] | null = null;
   let newFollowing: FollowingRecipeRow[] | null = null;
+  let fromPantry: PantryRecipeRow[] | null = null;
 
   if (user) {
-    const [{ data: fy }, { data: nf }] = await Promise.all([
+    const [{ data: fy }, { data: nf }, { data: fp }] = await Promise.all([
       supabase.rpc("recommended_for_you", { lim: 8 }),
       supabase.rpc("new_from_following_recipes", { lim: 6 }),
+      supabase.rpc("recipes_from_pantry_for_home", { min_match_pct: 0.5, lim: 4 }),
     ]);
     forYou = fy;
     newFollowing = nf;
+    fromPantry = fp;
   }
 
   const { data: cooks } = await supabase
@@ -304,6 +369,30 @@ export default async function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {forYou.map((r) => (
               <RecipeCard key={r.recipe_id} r={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FROM YOUR PANTRY (chỉ hiện khi đã đăng nhập và có dữ liệu) */}
+      {user && fromPantry && fromPantry.length > 0 && (
+        <section className="py-20 max-w-[1160px] mx-auto px-6 w-full">
+          <div className="mb-10">
+            <div className="text-emerald-600 font-bold text-[13px] uppercase tracking-wider flex items-center gap-2">
+              <IconFridge className="w-4 h-4" />
+              Từ tủ lạnh của bạn
+            </div>
+            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+              Nấu từ nguyên liệu có sẵn
+            </h2>
+            <p className="mt-3.5 text-ink-soft leading-relaxed max-w-[560px]">
+              Dựa trên nguyên liệu bạn đã lưu trong tủ lạnh — ưu tiên món bạn
+              nấu được ngay hoặc chỉ thiếu vài thứ.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {fromPantry.map((r) => (
+              <PantryRecipeCard key={r.recipe_id} r={r} />
             ))}
           </div>
         </section>
