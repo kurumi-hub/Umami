@@ -243,14 +243,22 @@ export default async function AccountPage() {
                 {myRecipesCount ? ` (${myRecipesCount})` : ""}
               </h2>
             </div>
-            {(myRecipesCount ?? 0) > 6 && (
+            <div className="flex items-center gap-3">
               <Link
-                href="/account/recipes"
+                href="/account/recipes/new"
                 className="text-[13.5px] font-bold text-pink-600 hover:underline"
               >
-                Xem tất cả →
+                + Đăng công thức mới
               </Link>
-            )}
+              {(myRecipesCount ?? 0) > 6 && (
+                <Link
+                  href="/account/recipes"
+                  className="text-[13.5px] font-bold text-pink-600 hover:underline"
+                >
+                  Xem tất cả →
+                </Link>
+              )}
+            </div>
           </div>
           {myRecipes && myRecipes.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

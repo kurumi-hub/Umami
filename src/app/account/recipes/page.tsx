@@ -92,9 +92,17 @@ export default async function MyRecipesPage({
           ← Về trang Cá nhân
         </Link>
 
-        <h1 className="font-display font-extrabold text-[26px] sm:text-[32px] mb-6">
-          Công thức của bạn {count ? `(${count})` : ""}
-        </h1>
+        <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+          <h1 className="font-display font-extrabold text-[26px] sm:text-[32px]">
+            Công thức của bạn {count ? `(${count})` : ""}
+          </h1>
+          <Link
+            href="/account/recipes/new"
+            className="rounded-full bg-pink-500 px-4 py-2 text-[13px] font-bold text-white shadow-[0_10px_24px_-8px_rgba(255,111,145,0.65)]"
+          >
+            + Đăng công thức mới
+          </Link>
+        </div>
 
         <div className="mb-6 flex flex-wrap gap-2">
           {statusTabs.map((tab) => (
