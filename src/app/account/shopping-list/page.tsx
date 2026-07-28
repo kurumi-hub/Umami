@@ -35,13 +35,23 @@ export default async function ShoppingListPage() {
       : Promise.resolve({ data: [] }),
     supabase
       .from("user_pantry")
-      .select("ingredient_id, ingredients(id, name)")
+      .select("ingredient_id, quantity, unit, expires_on, ingredients(id, name)")
       .eq("user_id", user.id),
   ]);
 
   const pantry = (pantryRows ?? [])
-    .map((row) => (Array.isArray(row.ingredients) ? row.ingredients[0] : row.ingredients))
-    .filter(Boolean) as { id: string; name: string }[];
+    .map((row) => {
+      const ingredient = Array.isArray(row.ingredients) ? row.ingredients[0] : row.ingredients;
+      if (!ingredient) return null;
+      return {
+        id: ingredient.id,
+        name: ingredient.name,
+        quantity: row.quantity,
+        unit: row.unit,
+        expires_on: row.expires_on,
+      };
+    })
+    .filter(Boolean) as { id: string; name: string; quantity: number | null; unit: string | null; expires_on: string | null }[];
 
   return (
     <div className="flex flex-col flex-1">

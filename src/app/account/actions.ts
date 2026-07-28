@@ -302,7 +302,12 @@ export async function clearCheckedItems() {
 // tiếp cho hàng của chính mình.
 // ---------------------------------------------------------------------
 
-export async function addPantryItem(ingredientId: string) {
+export async function addPantryItem(
+  ingredientId: string,
+  quantity: number | null,
+  unit: string | null,
+  expiresOn: string | null
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -310,12 +315,17 @@ export async function addPantryItem(ingredientId: string) {
 
   if (!user) return { error: "Cần đăng nhập." };
 
-  const { error } = await supabase
-    .from("user_pantry")
-    .upsert(
-      { user_id: user.id, ingredient_id: ingredientId },
-      { onConflict: "user_id,ingredient_id" }
-    );
+  const { error } = await supabase.from("user_pantry").upsert(
+    {
+      user_id: user.id,
+      ingredient_id: ingredientId,
+      quantity,
+      unit,
+      expires_on: expiresOn,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,ingredient_id" }
+  );
 
   if (error) {
     return { error: "Không thể thêm vào tủ lạnh, thử lại sau." };

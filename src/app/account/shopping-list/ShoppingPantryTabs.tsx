@@ -14,14 +14,20 @@ type ShoppingItem = {
   recipe_title: string | null;
 };
 
-type Ingredient = { id: string; name: string };
+type PantryItem = {
+  id: string;
+  name: string;
+  quantity: number | null;
+  unit: string | null;
+  expires_on: string | null;
+};
 
 export default function ShoppingPantryTabs({
   initialItems,
   initialPantry,
 }: {
   initialItems: ShoppingItem[];
-  initialPantry: Ingredient[];
+  initialPantry: PantryItem[];
 }) {
   const [tab, setTab] = useState<"shopping" | "pantry">("shopping");
 

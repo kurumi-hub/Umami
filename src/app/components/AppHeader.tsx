@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconBowl, IconCart, IconCompass, IconUser, IconUsers } from "@/app/icons";
+import { IconBell, IconBowl, IconCart, IconCompass, IconLogout, IconUser, IconUsers } from "@/app/icons";
 import { createClient } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import ThemeToggle from "@/app/ThemeToggle";
@@ -35,12 +35,17 @@ export default async function AppHeader({ active }: { active: NavKey }) {
   // RLS "own list items" đã tự giới hạn về đúng danh sách của user hiện
   // tại, nên không cần lọc list_id thủ công ở đây.
   let uncheckedCount = 0;
+  let unreadNotifCount = 0;
   if (user) {
-    const { count } = await supabase
-      .from("shopping_list_items")
-      .select("id", { count: "exact", head: true })
-      .eq("is_checked", false);
+    const [{ count }, { data: unreadCountData }] = await Promise.all([
+      supabase
+        .from("shopping_list_items")
+        .select("id", { count: "exact", head: true })
+        .eq("is_checked", false),
+      supabase.rpc("unread_notification_count"),
+    ]);
     uncheckedCount = count ?? 0;
+    unreadNotifCount = unreadCountData ?? 0;
   }
 
   return (
@@ -68,6 +73,21 @@ export default async function AppHeader({ active }: { active: NavKey }) {
         <div className="flex items-center gap-3">
           {user && (
             <Link
+              href="/account/notifications"
+              aria-label="Thông báo"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
+            >
+              <IconBell className="h-[19px] w-[19px]" />
+              {unreadNotifCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] font-bold text-white">
+                  {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                </span>
+              )}
+            </Link>
+          )}
+
+          {user && (
+            <Link
               href="/account/shopping-list"
               aria-label="Danh sách đi chợ"
               className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
@@ -91,9 +111,10 @@ export default async function AppHeader({ active }: { active: NavKey }) {
               <form action={logout}>
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center rounded-full border-2 border-pink-300 px-5 py-2.5 text-[14px] font-bold text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
+                  aria-label="Đăng xuất"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-pink-300 text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
                 >
-                  Đăng xuất
+                  <IconLogout className="h-4.5 w-4.5" />
                 </button>
               </form>
             </div>
