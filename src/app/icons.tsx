@@ -1,4 +1,4 @@
-type IconProps = {
+export type IconProps = {
   className?: string;
 };
 
@@ -253,6 +253,15 @@ export function IconPlus({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={base} strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+export function IconShuffle({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={base} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 6h3.5c2 0 3 .7 4 2.2M20 6h-3.5c-1.4 0-2.3.35-3.1 1.2M4 18h3.5c2 0 3-.7 4-2.2M20 18h-3.5c-1.4 0-2.3-.35-3.1-1.2" />
+      <path d="M17.5 3.5 20 6l-2.5 2.5M17.5 20.5 20 18l-2.5-2.5" />
     </svg>
   );
 }

@@ -9,6 +9,14 @@ import {
   IconUsers,
 } from "@/app/icons";
 
+const statusLabels: Record<string, { label: string; className: string }> = {
+  published: { label: "Đã đăng", className: "bg-mint/25 text-emerald-700" },
+  pending_review: { label: "Chờ duyệt", className: "bg-mango/20 text-amber-700" },
+  draft: { label: "Bản nháp", className: "bg-pink-500/10 text-ink-soft" },
+  rejected: { label: "Bị từ chối", className: "bg-pink-500/15 text-pink-600" },
+  archived: { label: "Đã lưu trữ", className: "bg-pink-500/10 text-ink-soft" },
+};
+
 export default async function AccountPage() {
   const supabase = await createClient();
   const {
@@ -28,6 +36,18 @@ export default async function AccountPage() {
     )
     .eq("id", user.id)
     .maybeSingle();
+
+  // Công thức của chính mình PHẢI luôn hiển thị được với bản thân, kể cả
+  // khi chưa 'published' (đang chờ duyệt/nháp/bị từ chối) — khác với các
+  // RPC trang chủ (trending_recipes, quick_recipes...) chỉ show công khai
+  // những bài đã published, vì đó là feed công khai chứ không phải của
+  // riêng tác giả.
+  const { data: myRecipes } = await supabase
+    .from("recipes")
+    .select("id, title, slug, status, created_at")
+    .eq("author_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const displayName =
     profile?.display_name || user.user_metadata?.full_name || "Bạn";
@@ -74,6 +94,43 @@ export default async function AccountPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <IconClipboard className="h-5 w-5 text-pink-500" />
+            <h2 className="text-[17px] font-bold">Công thức của bạn</h2>
+          </div>
+          {myRecipes && myRecipes.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {myRecipes.map((r) => {
+                const status = statusLabels[r.status] ?? {
+                  label: r.status,
+                  className: "bg-pink-500/10 text-ink-soft",
+                };
+                return (
+                  <div
+                    key={r.id}
+                    className="flex items-center justify-between gap-3 rounded-[16px] border border-pink-500/10 bg-surface px-4 py-3"
+                  >
+                    <span className="text-[14px] font-semibold truncate">
+                      {r.title}
+                    </span>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-[11.5px] font-bold ${status.className}`}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
+              Bạn chưa đăng công thức nào. Hãy chia sẻ món ngon đầu tiên của
+              bạn với cộng đồng!
+            </div>
+          )}
         </div>
 
         <div className="mt-8">

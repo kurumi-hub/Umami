@@ -1,53 +1,97 @@
 import Link from "next/link";
 import {
-  IconApple,
   IconBookmark,
   IconBowl,
-  IconBurger,
   IconCake,
   IconChefHat,
   IconClock,
-  IconCup,
   IconFlame,
   IconLeaf,
   IconPizza,
-  IconPlay,
   IconRiceBowl,
   IconSearch,
+  IconShuffle,
   IconStar,
   IconTakeoutBox,
+  type IconProps,
 } from "./icons";
 import AppHeader from "@/app/components/AppHeader";
+import { createClient } from "@/utils/supabase/server";
 
-const categories = [
-  { Icon: IconRiceBowl, name: "Cơm & Món chính", count: "1.200+ công thức", bg: "bg-pink-100" },
-  { Icon: IconCup, name: "Trà & Nước uống", count: "480+ công thức", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
-  { Icon: IconLeaf, name: "Đồ chay lành", count: "360+ công thức", bg: "bg-[#e3f6e8] dark:bg-[#1f3a2b]" },
-  { Icon: IconCake, name: "Tráng miệng", count: "520+ công thức", bg: "bg-pink-100" },
-  { Icon: IconPizza, name: "Pizza & Fast food", count: "290+ công thức", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
-  { Icon: IconBowl, name: "Mì & Phở", count: "410+ công thức", bg: "bg-[#e3f6e8] dark:bg-[#1f3a2b]" },
-  { Icon: IconTakeoutBox, name: "Ăn vặt", count: "630+ công thức", bg: "bg-pink-100" },
-  { Icon: IconBurger, name: "Burger & Gà rán", count: "180+ công thức", bg: "bg-[#fff0d9] dark:bg-[#4a3a1f]" },
+// ---------------------------------------------------------------------
+// Kiểu dữ liệu khớp với cột trả về của các RPC trong
+// home_recommendation_rpcs.sql
+// ---------------------------------------------------------------------
+type RecipeRow = {
+  recipe_id: string;
+  title: string;
+  slug: string;
+  thumbnail_url: string | null;
+  avg_rating: number | string | null;
+  total_time_min: number | null;
+  difficulty: string | null;
+  author_name: string | null;
+};
+
+type FollowingRecipeRow = {
+  recipe_id: string;
+  title: string;
+  slug: string;
+  thumbnail_url: string | null;
+  author_name: string | null;
+  published_at: string;
+};
+
+type PopularTag = {
+  tag_id: string;
+  type: string;
+  name: string;
+  slug: string;
+  recipe_count: number;
+};
+
+type CookProfile = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  recipe_count: number;
+};
+
+const diffLabels: Record<string, string> = {
+  easy: "Dễ",
+  medium: "Vừa",
+  hard: "Khó",
+};
+
+const tagIcons: Record<string, (props: IconProps) => React.ReactNode> = {
+  breakfast: IconCake,
+  lunch: IconRiceBowl,
+  dinner: IconBowl,
+  snack: IconTakeoutBox,
+  dessert: IconCake,
+  "viet-nam": IconLeaf,
+  au: IconPizza,
+};
+
+const tagBgs = [
+  "bg-pink-100",
+  "bg-[#fff0d9] dark:bg-[#4a3a1f]",
+  "bg-[#e3f6e8] dark:bg-[#1f3a2b]",
+  "bg-pink-100",
 ];
 
-const featuredRecipes = [
-  { title: "Phở bò truyền thống", author: "Cô Lan Bếp Việt", time: "3g 30p", rating: "4.9", saves: "2.4k", diff: "Khó" },
-  { title: "Bún chả Hà Nội", author: "Chef Minh Đức", time: "45p", rating: "4.8", saves: "1.9k", diff: "Vừa" },
-  { title: "Gỏi cuốn tôm thịt", author: "Bếp Của Mẹ", time: "30p", rating: "4.7", saves: "1.2k", diff: "Dễ" },
-  { title: "Bánh xèo miền Tây", author: "Anh Tư Miền Tây", time: "50p", rating: "4.9", saves: "3.1k", diff: "Vừa" },
-  { title: "Cơm tấm sườn bì chả", author: "Sài Gòn Food", time: "50p", rating: "4.8", saves: "2.7k", diff: "Vừa" },
-  { title: "Bún bò Huế", author: "O Huế Bếp Xưa", time: "2g 25p", rating: "4.9", saves: "2.0k", diff: "Khó" },
-  { title: "Chè đậu xanh nước cốt dừa", author: "Ngọt Bếp Nhà", time: "55p", rating: "4.6", saves: "980", diff: "Dễ" },
-  { title: "Mì Ý sốt bò bằm", author: "Kitchen Ý", time: "55p", rating: "4.7", saves: "1.5k", diff: "Vừa" },
-];
+function formatMinutes(min: number | null) {
+  if (!min) return "—";
+  if (min < 60) return `${min} phút`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h}g ${m}p` : `${h} giờ`;
+}
 
-const cooks = [
-  { name: "Cô Lan Bếp Việt", handle: "@colanbepviet", recipes: 128 },
-  { name: "Chef Minh Đức", handle: "@chefminhduc", recipes: 96 },
-  { name: "O Huế Bếp Xưa", handle: "@ohuebepxua", recipes: 74 },
-  { name: "Sài Gòn Food", handle: "@saigonfood", recipes: 210 },
-  { name: "Ngọt Bếp Nhà", handle: "@ngotbepnha", recipes: 65 },
-];
+function formatRating(rating: number | string | null) {
+  const n = typeof rating === "string" ? parseFloat(rating) : rating;
+  return n && n > 0 ? n.toFixed(1) : "Chưa có";
+}
 
 function Stars() {
   return (
@@ -72,39 +116,7 @@ function Logo({ light = false }: { light?: boolean }) {
   );
 }
 
-function StoreBadge({ dark = true }: { dark?: boolean }) {
-  return (
-    <div
-      className={`flex items-center gap-2.5 rounded-2xl px-[18px] py-2.5 text-[13px] font-semibold ${
-        dark ? "bg-[#2b1620] text-white" : "bg-white/15 text-white"
-      }`}
-    >
-      <IconApple className="w-5 h-5" />
-      <span className="flex flex-col leading-tight">
-        <small className="font-normal opacity-70 text-[10px]">Tải trên</small>
-        App Store
-      </span>
-    </div>
-  );
-}
-
-function StoreBadgePlay({ dark = true }: { dark?: boolean }) {
-  return (
-    <div
-      className={`flex items-center gap-2.5 rounded-2xl px-[18px] py-2.5 text-[13px] font-semibold ${
-        dark ? "bg-[#2b1620] text-white" : "bg-white/15 text-white"
-      }`}
-    >
-      <IconPlay className="w-4 h-4" />
-      <span className="flex flex-col leading-tight">
-        <small className="font-normal opacity-70 text-[10px]">Tải trên</small>
-        Google Play
-      </span>
-    </div>
-  );
-}
-
-function RecipeCard({ r }: { r: (typeof featuredRecipes)[number] }) {
+function RecipeCard({ r }: { r: RecipeRow }) {
   return (
     <div className="group bg-surface rounded-[22px] overflow-hidden border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]">
       <div className="relative h-[150px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
@@ -116,21 +128,25 @@ function RecipeCard({ r }: { r: (typeof featuredRecipes)[number] }) {
         >
           <IconBookmark className="w-4 h-4" />
         </button>
-        <span className="absolute bottom-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink-soft">
-          {r.diff}
-        </span>
+        {r.difficulty && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-surface/90 px-2.5 py-1 text-[11px] font-bold text-ink-soft">
+            {diffLabels[r.difficulty] ?? r.difficulty}
+          </span>
+        )}
       </div>
       <div className="p-4">
         <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">{r.title}</h4>
-        <p className="mt-1 text-[12.5px] text-ink-soft">{r.author}</p>
+        <p className="mt-1 text-[12.5px] text-ink-soft">
+          {r.author_name || "Cộng đồng Umami"}
+        </p>
         <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">
           <span className="flex items-center gap-1">
             <IconClock className="w-3.5 h-3.5" />
-            {r.time}
+            {formatMinutes(r.total_time_min)}
           </span>
           <span className="flex items-center gap-1">
             <Stars />
-            {r.rating}
+            {formatRating(r.avg_rating)}
           </span>
         </div>
       </div>
@@ -138,7 +154,57 @@ function RecipeCard({ r }: { r: (typeof featuredRecipes)[number] }) {
   );
 }
 
-export default function Home() {
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
+      {children}
+    </div>
+  );
+}
+
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [
+    { data: trending },
+    { data: quick },
+    { data: popularTags },
+    { data: randomPicks },
+    { count: totalPublished },
+  ] = await Promise.all([
+    supabase.rpc("trending_recipes", { lim: 8 }),
+    supabase.rpc("quick_recipes", { max_minutes: 30, lim: 4 }),
+    supabase.rpc("popular_tags", { lim: 8 }),
+    supabase.rpc("random_recipes", { lim: 4 }),
+    supabase
+      .from("recipes")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "published")
+      .eq("is_hidden", false),
+  ]);
+
+  let forYou: RecipeRow[] | null = null;
+  let newFollowing: FollowingRecipeRow[] | null = null;
+
+  if (user) {
+    const [{ data: fy }, { data: nf }] = await Promise.all([
+      supabase.rpc("recommended_for_you", { lim: 8 }),
+      supabase.rpc("new_from_following_recipes", { lim: 6 }),
+    ]);
+    forYou = fy;
+    newFollowing = nf;
+  }
+
+  const { data: cooks } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, recipe_count")
+    .gt("recipe_count", 0)
+    .order("recipe_count", { ascending: false })
+    .limit(5);
+
   return (
     <div className="flex flex-col flex-1">
       <AppHeader active="discover" />
@@ -151,7 +217,7 @@ export default function Home() {
         <div className="relative z-10 max-w-[1160px] mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[13px] font-bold text-pink-600 shadow-[0_6px_16px_-8px_rgba(255,111,145,0.4)] mb-5">
             <IconFlame className="w-4 h-4" />
-            Hơn 4.500 công thức từ cộng đồng
+            {totalPublished ? `${totalPublished}+ công thức từ cộng đồng` : "Kho công thức từ cộng đồng"}
           </div>
           <h1 className="font-display font-extrabold text-ink leading-[1.05] text-[32px] sm:text-[44px] lg:text-[56px]">
             Hôm nay ăn gì?
@@ -176,17 +242,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* MARQUEE */}
-      <div className="bg-pink-500 py-3.5 overflow-hidden">
-        <div className="animate-marquee flex gap-12 whitespace-nowrap font-display font-bold text-white text-base">
-          <span>
-            Phở bò · Bún chả · Gỏi cuốn · Bánh xèo · Cơm tấm · Bún bò Huế ·
-            Chè · Mì Ý · Phở bò · Bún chả · Gỏi cuốn · Bánh xèo · Cơm tấm ·
-            Bún bò Huế · Chè · Mì Ý ·
-          </span>
-        </div>
-      </div>
-
       {/* CATEGORIES */}
       <section id="danh-muc" className="bg-pink-50 py-20">
         <div className="max-w-[1160px] mx-auto px-6">
@@ -202,26 +257,57 @@ export default function Home() {
               thức.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-            {categories.map((c) => (
-              <div
-                key={c.name}
-                className="bg-surface rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
-              >
-                <div
-                  className={`w-16 h-16 rounded-[18px] mx-auto mb-3.5 flex items-center justify-center ${c.bg}`}
-                >
-                  <c.Icon className="w-7 h-7 text-ink" />
-                </div>
-                <h4 className="text-[15px] font-bold">{c.name}</h4>
-                <span className="text-[12.5px] text-ink-soft">{c.count}</span>
-              </div>
-            ))}
-          </div>
+          {popularTags && popularTags.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              {(popularTags as PopularTag[]).map((tag, i) => {
+                const Icon = tagIcons[tag.slug] ?? IconBowl;
+                return (
+                  <div
+                    key={tag.tag_id}
+                    className="bg-surface rounded-[22px] px-5 py-6 text-center border border-pink-500/10 transition-all hover:-translate-y-1.5 hover:shadow-[0_18px_34px_-18px_rgba(255,111,145,0.5)]"
+                  >
+                    <div
+                      className={`w-16 h-16 rounded-[18px] mx-auto mb-3.5 flex items-center justify-center ${tagBgs[i % tagBgs.length]}`}
+                    >
+                      <Icon className="w-7 h-7 text-ink" />
+                    </div>
+                    <h4 className="text-[15px] font-bold">{tag.name}</h4>
+                    <span className="text-[12.5px] text-ink-soft">
+                      {tag.recipe_count}+ công thức
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState>
+              Chưa có danh mục nào — hãy là người đầu tiên đăng công thức và
+              gắn thẻ cho món ăn của bạn.
+            </EmptyState>
+          )}
         </div>
       </section>
 
-      {/* FEATURED RECIPES */}
+      {/* RECOMMENDED FOR YOU (chỉ hiện khi đã đăng nhập và có dữ liệu) */}
+      {user && forYou && forYou.length > 0 && (
+        <section className="py-20 max-w-[1160px] mx-auto px-6 w-full">
+          <div className="mb-10">
+            <div className="text-pink-600 font-bold text-[13px] uppercase tracking-wider">
+              Dành riêng cho bạn
+            </div>
+            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+              Đề xuất theo khẩu vị của bạn
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {forYou.map((r) => (
+              <RecipeCard key={r.recipe_id} r={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* FEATURED RECIPES (trending) */}
       <section id="cong-thuc" className="py-20 max-w-[1160px] mx-auto px-6 w-full">
         <div className="flex items-end justify-between mb-10 flex-wrap gap-3">
           <div>
@@ -239,12 +325,113 @@ export default function Home() {
             Xem tất cả →
           </Link>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {featuredRecipes.map((r) => (
-            <RecipeCard key={r.title} r={r} />
-          ))}
+        {trending && trending.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {(trending as RecipeRow[]).map((r) => (
+              <RecipeCard key={r.recipe_id} r={r} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState>
+            Chưa có công thức nào được xuất bản. Hãy là người đầu tiên chia
+            sẻ món ngon của bạn!
+          </EmptyState>
+        )}
+      </section>
+
+      {/* QUICK RECIPES */}
+      <section className="bg-pink-50 py-20">
+        <div className="max-w-[1160px] mx-auto px-6">
+          <div className="mb-10">
+            <div className="text-pink-600 font-bold text-[13px] uppercase tracking-wider">
+              Nấu nhanh hôm nay
+            </div>
+            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+              Xong bữa trong 30 phút
+            </h2>
+          </div>
+          {quick && quick.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+              {(quick as RecipeRow[]).map((r) => (
+                <RecipeCard key={r.recipe_id} r={r} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState>
+              Chưa có công thức nào dưới 30 phút. Hãy thêm thời gian nấu khi
+              đăng công thức để món của bạn xuất hiện ở đây.
+            </EmptyState>
+          )}
         </div>
       </section>
+
+      {/* RANDOM PICKS */}
+      <section className="max-w-[1160px] mx-auto px-6 py-20 w-full">
+        <div className="flex items-end justify-between mb-10 flex-wrap gap-3">
+          <div>
+            <div className="text-pink-600 font-bold text-[13px] uppercase tracking-wider flex items-center gap-2">
+              <IconShuffle className="w-4 h-4" />
+              Thử vận may
+            </div>
+            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+              Hôm nay nấu thử món này xem sao?
+            </h2>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 rounded-full border-2 border-pink-300 px-5 py-2.5 text-[14px] font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+          >
+            <IconShuffle className="w-4 h-4" />
+            Xáo lại
+          </Link>
+        </div>
+        {randomPicks && randomPicks.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {(randomPicks as RecipeRow[]).map((r) => (
+              <RecipeCard key={r.recipe_id} r={r} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState>
+            Chưa có công thức nào để xổ ngẫu nhiên — hãy đăng công thức đầu
+            tiên của bạn!
+          </EmptyState>
+        )}
+      </section>
+
+      {/* NEW FROM FOLLOWING (chỉ hiện khi đã đăng nhập và có dữ liệu) */}
+      {user && newFollowing && newFollowing.length > 0 && (
+        <section className="py-20 max-w-[1160px] mx-auto px-6 w-full">
+          <div className="mb-10">
+            <div className="text-pink-600 font-bold text-[13px] uppercase tracking-wider">
+              Người bạn theo dõi
+            </div>
+            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] mt-2.5">
+              Công thức mới nhất
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {newFollowing.map((r) => (
+              <div
+                key={r.recipe_id}
+                className="bg-surface rounded-[22px] overflow-hidden border border-pink-500/10"
+              >
+                <div className="h-[150px] bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-100/10 dark:to-transparent flex items-center justify-center">
+                  <IconBowl className="w-14 h-14 text-pink-400" />
+                </div>
+                <div className="p-4">
+                  <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">
+                    {r.title}
+                  </h4>
+                  <p className="mt-1 text-[12.5px] text-ink-soft">
+                    {r.author_name || "Ẩn danh"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* FEATURED COOKS */}
       <section className="bg-pink-50 py-20">
@@ -260,52 +447,32 @@ export default function Home() {
               Theo dõi những người chia sẻ công thức được yêu thích nhất.
             </p>
           </div>
-          <div className="flex gap-5 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5">
-            {cooks.map((c) => (
-              <div
-                key={c.handle}
-                className="shrink-0 w-[160px] md:w-auto bg-surface rounded-[20px] px-5 py-6 text-center border border-pink-500/10"
-              >
-                <div className="w-16 h-16 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-pink-100">
-                  <IconChefHat className="w-7 h-7 text-pink-500" />
+          {cooks && cooks.length > 0 ? (
+            <div className="flex gap-5 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5">
+              {(cooks as CookProfile[]).map((c) => (
+                <div
+                  key={c.id}
+                  className="shrink-0 w-[160px] md:w-auto bg-surface rounded-[20px] px-5 py-6 text-center border border-pink-500/10"
+                >
+                  <div className="w-16 h-16 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-pink-100">
+                    <IconChefHat className="w-7 h-7 text-pink-500" />
+                  </div>
+                  <h4 className="text-[14.5px] font-bold">
+                    {c.display_name || c.username}
+                  </h4>
+                  <span className="text-[12px] text-ink-soft">@{c.username}</span>
+                  <div className="mt-2 text-[12px] font-semibold text-pink-600">
+                    {c.recipe_count} công thức
+                  </div>
                 </div>
-                <h4 className="text-[14.5px] font-bold">{c.name}</h4>
-                <span className="text-[12px] text-ink-soft">{c.handle}</span>
-                <div className="mt-2 text-[12px] font-semibold text-pink-600">
-                  {c.recipes} công thức
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* APP CTA */}
-      <section className="max-w-[1160px] mx-auto px-6 py-20 w-full">
-        <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-pink-500 to-pink-600 px-7 py-12 sm:px-12 sm:py-16 grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-10 items-center text-white text-center md:text-left">
-          <div>
-            <h2 className="font-display font-extrabold text-[26px] sm:text-[36px] leading-tight">
-              Nấu ngon mỗi ngày,
-              <br />
-              cùng cộng đồng Umami.
-            </h2>
-            <p className="mt-3.5 opacity-90 max-w-[420px] mx-auto md:mx-0">
-              Tải Umami để lưu công thức yêu thích, theo dõi đầu bếp và chia
-              sẻ món ngon của riêng bạn.
-            </p>
-            <div className="flex gap-3.5 mt-7 flex-wrap justify-center md:justify-start">
-              <StoreBadge dark={false} />
-              <StoreBadgePlay dark={false} />
+              ))}
             </div>
-          </div>
-          <div className="flex justify-center">
-            <div className="w-[190px] h-[380px] bg-surface rounded-[34px] p-2.5 shadow-[0_30px_60px_-18px_rgba(0,0,0,0.35)]">
-              <div className="w-full h-full rounded-[26px] bg-gradient-to-b from-pink-50 to-surface flex flex-col items-center justify-center gap-3">
-                <IconBowl className="w-14 h-14 text-pink-500" />
-                <b className="font-display text-ink">Umami</b>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <EmptyState>
+              Chưa có đầu bếp nổi bật — công thức đầu tiên được duyệt sẽ xuất
+              hiện ở đây.
+            </EmptyState>
+          )}
         </div>
       </section>
 
