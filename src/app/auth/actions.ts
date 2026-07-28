@@ -1,26 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
 
 export type AuthState = {
   error?: string;
   success?: string;
 } | null;
-
-// Dựng origin (vd: https://eatnow.app) từ header của request để build link
-// redirect cho email (quên mật khẩu). Ưu tiên NEXT_PUBLIC_SITE_URL nếu có,
-// vì header host có thể sai sau proxy/CDN.
-async function getOrigin() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  }
-  const h = await headers();
-  const host = h.get("host");
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${host}`;
-}
 
 export async function login(
   _prevState: AuthState,
@@ -94,7 +80,7 @@ export async function signup(
         // Trigger handle_new_user() tự fallback sang user_<uuid> nếu
         // username này đã bị trùng, nên không cần kiểm tra trước ở đây.
       },
-      // Không truyền emailRedirectTo -> Supabase gửi mã OTP 6 số
+      // Không truyền emailRedirectTo -> Supabase gửi mã OTP 8 số
       // (đọc được qua biến {{ .Token }} trong Email Template) thay vì
       // link xác nhận (magic link).
     },
@@ -145,7 +131,8 @@ export async function resendSignupOtp(email: string): Promise<AuthState> {
 }
 
 // ---------------------------------------------------------------------
-// Quên mật khẩu
+// Quên mật khẩu — dùng mã OTP 8 số (email template dùng {{ .Token }}),
+// không dùng magic link.
 // ---------------------------------------------------------------------
 
 export async function forgotPassword(
@@ -159,35 +146,35 @@ export async function forgotPassword(
     return { error: "Vui lòng nhập email." };
   }
 
-  const origin = await getOrigin();
+  // Không truyền redirectTo -> Supabase gửi mã OTP 8 số qua email thay vì
+  // link đặt lại mật khẩu.
+  await supabase.auth.resetPasswordForEmail(email);
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(
-      "/auth/reset-password"
-    )}&type=recovery`,
-  });
-
-  // Không tiết lộ email có tồn tại hay không -> luôn báo thành công
-  // để tránh dò email người dùng khác.
-  if (error) {
-    return {
-      success:
-        "Nếu email tồn tại trong hệ thống, một liên kết đặt lại mật khẩu đã được gửi tới.",
-    };
-  }
-
-  return {
-    success:
-      "Nếu email tồn tại trong hệ thống, một liên kết đặt lại mật khẩu đã được gửi tới.",
-  };
+  // Luôn chuyển sang màn nhập mã dù email có tồn tại hay không, để tránh
+  // lộ thông tin email nào đã đăng ký trong hệ thống.
+  redirect(`/auth/reset-password?email=${encodeURIComponent(email)}`);
 }
 
-export async function resetPassword(
+export async function resendResetOtp(email: string): Promise<AuthState> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+  if (error) {
+    return { error: "Không thể gửi lại mã, thử lại sau ít phút." };
+  }
+
+  return null;
+}
+
+export async function resetPasswordWithOtp(
   _prevState: AuthState,
   formData: FormData
 ): Promise<AuthState> {
   const supabase = await createClient();
 
+  const email = String(formData.get("email") || "").trim();
+  const token = String(formData.get("token") || "").trim();
   const password = String(formData.get("password") || "");
   const confirmPassword = String(formData.get("confirmPassword") || "");
 
@@ -199,19 +186,21 @@ export async function resetPassword(
     return { error: "Xác nhận mật khẩu không khớp." };
   }
 
-  // Yêu cầu phải có phiên "recovery" hợp lệ (được thiết lập ở /auth/confirm
-  // sau khi bấm link trong email). Nếu không còn phiên -> link đã hết hạn.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Xác minh mã OTP để mở phiên "recovery", sau đó mới được phép đổi
+  // mật khẩu bằng updateUser().
+  const { error: otpError } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "recovery",
+  });
 
-  if (!user) {
-    return { error: "Liên kết đã hết hạn, vui lòng yêu cầu gửi lại." };
+  if (otpError) {
+    return { error: "Mã xác nhận không đúng hoặc đã hết hạn." };
   }
 
-  const { error } = await supabase.auth.updateUser({ password });
+  const { error: updateError } = await supabase.auth.updateUser({ password });
 
-  if (error) {
+  if (updateError) {
     return { error: "Không thể đặt lại mật khẩu, vui lòng thử lại." };
   }
 

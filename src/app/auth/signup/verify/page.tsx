@@ -13,8 +13,8 @@ export default async function VerifyPage({
       title="Nhập mã xác nhận"
       subtitle={
         email
-          ? `EatNow đã gửi mã 6 số tới ${email}`
-          : "Kiểm tra email để lấy mã 6 số"
+          ? `EatNow đã gửi mã 8 số tới ${email}`
+          : "Kiểm tra email để lấy mã 8 số"
       }
       footer={null}
     >
