@@ -145,6 +145,10 @@ export async function createRecipe(payload: RecipePayload) {
       }
     }
 
+    if (!ingredientId) {
+      return { error: `Không thể xử lý nguyên liệu "${ing.name}".` };
+    }
+
     ingredientRows.push({ id: ingredientId, position: i + 1, item: ing });
   }
 
