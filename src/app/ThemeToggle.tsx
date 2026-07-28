@@ -23,7 +23,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
   function applyTheme(next: boolean) {
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("eatnow-theme", next ? "dark" : "light");
+    localStorage.setItem("umami-theme", next ? "dark" : "light");
   }
 
   function toggle() {

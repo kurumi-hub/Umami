@@ -15,7 +15,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Chào bạn quay lại"
-      subtitle="Đăng nhập để tiếp tục đặt món trên EatNow"
+      subtitle="Đăng nhập để tiếp tục khám phá công thức trên Umami"
       footer={
         <>
           Chưa có tài khoản?{" "}

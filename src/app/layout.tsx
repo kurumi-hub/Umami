@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
+import BottomNav from "@/app/components/BottomNav";
 
 const baloo = Baloo_2({
   variable: "--font-baloo",
@@ -15,9 +16,9 @@ const beVietnamPro = Be_Vietnam_Pro({
 });
 
 export const metadata: Metadata = {
-  title: "EatNow — Đói bụng? EatNow lo hết.",
+  title: "Umami — Nấu ngon mỗi ngày",
   description:
-    "EatNow — app đặt đồ ăn giao nhanh, hơn 2.000 quán ăn quanh bạn, giao trung bình 15 phút.",
+    "Umami — kho công thức nấu ăn, mẹo vào bếp và cộng đồng người yêu nấu nướng. Khám phá, học hỏi và chia sẻ món ngon mỗi ngày.",
 };
 
 export default function RootLayout({
@@ -36,7 +37,7 @@ export default function RootLayout({
             __html: `
               (function () {
                 try {
-                  var stored = localStorage.getItem("eatnow-theme");
+                  var stored = localStorage.getItem("umami-theme");
                   var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   var isDark = stored ? stored === "dark" : prefersDark;
                   if (isDark) document.documentElement.classList.add("dark");
@@ -46,8 +47,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground pb-[84px] md:pb-0">
         {children}
+        <BottomNav />
       </body>
     </html>
   );

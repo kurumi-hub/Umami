@@ -28,7 +28,7 @@ export default function AuthShell({
           className="mb-8 flex items-center justify-center gap-2 font-display text-[22px] font-extrabold text-pink-600"
         >
           <span className="inline-block h-3 w-3 rounded-full bg-mango" />
-          EatNow
+          Umami
         </Link>
 
         <div className="rounded-[28px] bg-surface p-8 shadow-[0_24px_60px_-24px_rgba(58,31,43,0.3)]">

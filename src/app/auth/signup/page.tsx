@@ -11,7 +11,7 @@ export default function SignupPage() {
 
   return (
     <AuthShell
-      title="Tạo tài khoản EatNow"
+      title="Tạo tài khoản Umami"
       subtitle="Chỉ mất chưa đầy một phút"
       footer={
         <>
@@ -69,7 +69,7 @@ export default function SignupPage() {
 
         <p className="text-center text-[12.5px] leading-relaxed text-ink-soft">
           Bằng việc đăng ký, bạn đồng ý với Điều khoản dịch vụ và Chính sách
-          bảo mật của EatNow.
+          bảo mật của Umami.
         </p>
       </form>
     </AuthShell>

@@ -5,7 +5,7 @@ export default function CheckEmailPage() {
   return (
     <AuthShell
       title="Kiểm tra email của bạn"
-      subtitle="EatNow đã gửi một liên kết xác nhận"
+      subtitle="Umami đã gửi một liên kết xác nhận"
       footer={
         <Link href="/auth/login" className="font-semibold text-pink-600">
           Quay lại đăng nhập
