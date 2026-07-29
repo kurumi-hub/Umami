@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AppHeader from "@/app/components/AppHeader";
 import { createClient } from "@/utils/supabase/server";
+import RecipeReviewCard, { type ReviewRecipe } from "./RecipeReviewCard";
 
 export default async function ModPage() {
   const supabase = await createClient();
@@ -30,6 +31,49 @@ export default async function ModPage() {
     redirect("/");
   }
 
+  const { data: queueRaw, error: queueError } = await supabase.rpc(
+    "mod_review_queue",
+    { lim: 50 }
+  );
+
+  const queue = (queueRaw ?? []) as {
+    id: string;
+    slug: string;
+    title: string;
+    description: string | null;
+    thumbnail_url: string | null;
+    created_at: string;
+    author_id: string | null;
+  }[];
+
+  const authorIds = Array.from(
+    new Set(queue.map((r) => r.author_id).filter((id): id is string => Boolean(id)))
+  );
+
+  const { data: authors } = authorIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, username, display_name")
+        .in("id", authorIds)
+    : { data: [] as { id: string; username: string; display_name: string | null }[] };
+
+  const authorMap = new Map((authors ?? []).map((a) => [a.id, a]));
+
+  const reviewRecipes: ReviewRecipe[] = queue.map((r) => {
+    const author = r.author_id ? authorMap.get(r.author_id) : undefined;
+    return {
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      description: r.description,
+      thumbnail_url: r.thumbnail_url,
+      created_at: r.created_at,
+      author_id: r.author_id,
+      author_name: author?.display_name ?? null,
+      author_username: author?.username ?? null,
+    };
+  });
+
   return (
     <div className="flex flex-col flex-1">
       <AppHeader active="account" />
@@ -56,12 +100,34 @@ export default async function ModPage() {
           Chỉ hiện với tài khoản có quyền moderator hoặc admin.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
-            Hàng đợi duyệt công thức — sắp có
-            <br />
-            <span className="text-[12px]">(mod_review_queue)</span>
+        <section className="mb-10">
+          <div className="mb-4 flex items-center gap-2.5">
+            <h2 className="font-display font-extrabold text-[19px]">
+              Hàng đợi duyệt công thức
+            </h2>
+            <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[12px] font-bold text-pink-600">
+              {reviewRecipes.length}
+            </span>
           </div>
+
+          {queueError ? (
+            <div className="rounded-[20px] border border-pink-300/60 px-6 py-10 text-center text-[14px] text-pink-600">
+              Không tải được hàng đợi, thử tải lại trang.
+            </div>
+          ) : reviewRecipes.length === 0 ? (
+            <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
+              Không có bài nào đang chờ duyệt 🎉
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {reviewRecipes.map((r) => (
+                <RecipeReviewCard key={r.id} recipe={r} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
             Hàng đợi báo cáo vi phạm — sắp có
             <br />
