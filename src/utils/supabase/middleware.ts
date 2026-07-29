@@ -47,5 +47,44 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Bảo vệ /mod và /admin — luôn query thẳng bảng user_roles ở ĐÂY thay
+  // vì đọc role từ JWT claim, vì JWT bị revoke chậm (chỉ cập nhật ở lần
+  // refresh token kế tiếp — xem ghi chú trong is_active()/my_role() ở
+  // schema). Nhờ vậy quyền vừa bị thu hồi có hiệu lực NGAY, không phải
+  // đợi JWT hết hạn. Đây chỉ là lớp UX (ẩn trang khỏi người không có
+  // quyền) — lớp bảo mật thật nằm ở chỗ mọi RPC mod_*/admin_* đều tự
+  // gọi require_moderator()/require_admin() ngay trong Postgres, luôn
+  // tự kiểm tra lại bất kể middleware có bị bỏ qua hay không.
+  const isModRoute = request.nextUrl.pathname.startsWith("/mod");
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+
+  if (isModRoute || isAdminRoute) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      return NextResponse.redirect(url);
+    }
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const roleSet = new Set((roles ?? []).map((r) => r.role));
+    const isModerator = roleSet.has("moderator") || roleSet.has("admin");
+    const isAdmin = roleSet.has("admin");
+
+    if (isModRoute && !isModerator) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+    if (isAdminRoute && !isAdmin) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return supabaseResponse;
 }

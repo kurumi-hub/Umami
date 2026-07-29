@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IconBell, IconBowl, IconCart, IconCompass, IconLogout, IconUser, IconUsers } from "@/app/icons";
+import { IconBell, IconBowl, IconCart, IconCompass, IconLogout, IconShield, IconUser, IconUsers } from "@/app/icons";
 import { createClient } from "@/utils/supabase/server";
 import { logout } from "@/app/auth/actions";
 import ThemeToggle from "@/app/ThemeToggle";
@@ -36,16 +36,19 @@ export default async function AppHeader({ active }: { active: NavKey }) {
   // tại, nên không cần lọc list_id thủ công ở đây.
   let uncheckedCount = 0;
   let unreadNotifCount = 0;
+  let isModerator = false;
   if (user) {
-    const [{ count }, { data: unreadCountData }] = await Promise.all([
+    const [{ count }, { data: unreadCountData }, { data: roles }] = await Promise.all([
       supabase
         .from("shopping_list_items")
         .select("id", { count: "exact", head: true })
         .eq("is_checked", false),
       supabase.rpc("unread_notification_count"),
+      supabase.from("user_roles").select("role").eq("user_id", user.id),
     ]);
     uncheckedCount = count ?? 0;
     unreadNotifCount = unreadCountData ?? 0;
+    isModerator = (roles ?? []).some((r) => r.role === "moderator" || r.role === "admin");
   }
 
   return (
@@ -71,6 +74,16 @@ export default async function AppHeader({ active }: { active: NavKey }) {
         </div>
 
         <div className="flex items-center gap-3">
+          {isModerator && (
+            <Link
+              href="/mod"
+              aria-label="Quản trị nội dung"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink hover:bg-pink-50 dark:hover:bg-pink-100/10 transition-colors"
+            >
+              <IconShield className="h-[19px] w-[19px]" />
+            </Link>
+          )}
+
           {user && (
             <Link
               href="/account/notifications"
