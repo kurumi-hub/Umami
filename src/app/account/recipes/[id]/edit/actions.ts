@@ -87,8 +87,6 @@ export async function updateRecipe(recipeId: string, payload: RecipeEditPayload)
     return { error: "Không tìm thấy công thức hoặc bạn không có quyền sửa." };
   }
 
-  const totalTimeMin = (payload.prepTimeMin ?? 0) + (payload.cookTimeMin ?? 0) || null;
-
   const { error: updateError } = await supabase
     .from("recipes")
     .update({
@@ -96,7 +94,6 @@ export async function updateRecipe(recipeId: string, payload: RecipeEditPayload)
       description: payload.description.trim() || null,
       prep_time_min: payload.prepTimeMin,
       cook_time_min: payload.cookTimeMin,
-      total_time_min: totalTimeMin,
       servings: payload.servings,
       servings_unit: payload.servingsUnit.trim() || null,
       difficulty: payload.difficulty,
