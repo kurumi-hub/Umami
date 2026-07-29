@@ -143,10 +143,17 @@ export default async function AccountPage() {
   const username = profile?.username ? `@${profile.username}` : user.email;
 
   const stats = [
-    { label: "Công thức", value: profile?.recipe_count ?? 0, Icon: IconClipboard },
-    { label: "Người theo dõi", value: profile?.follower_count ?? 0, Icon: IconUsers },
-    { label: "Đang theo dõi", value: profile?.following_count ?? 0, Icon: IconHeart },
+    { label: "Công thức", value: profile?.recipe_count ?? 0, Icon: IconClipboard, href: "/account/recipes" },
+    { label: "Người theo dõi", value: profile?.follower_count ?? 0, Icon: IconUsers, href: "/account/connections" },
+    { label: "Đang theo dõi", value: profile?.following_count ?? 0, Icon: IconHeart, href: "/account/connections" },
   ];
+
+  const { data: accountStatusRows } = await supabase.rpc("my_account_status");
+  const accountStatus = accountStatusRows?.[0] as
+    | { suspended_until: string | null; reason: string | null }
+    | undefined;
+  const isSuspended =
+    accountStatus?.suspended_until && new Date(accountStatus.suspended_until) > new Date();
 
   return (
     <div className="flex flex-col flex-1">
@@ -181,17 +188,30 @@ export default async function AccountPage() {
 
           <div className="mt-7 grid grid-cols-3 gap-3">
             {stats.map((s) => (
-              <div
+              <Link
                 key={s.label}
-                className="flex flex-col items-center gap-1 rounded-[18px] bg-pink-50 px-3 py-4 text-center"
+                href={s.href}
+                className="flex flex-col items-center gap-1 rounded-[18px] bg-pink-50 px-3 py-4 text-center hover:bg-pink-100 transition-colors"
               >
                 <s.Icon className="h-5 w-5 text-pink-500" />
                 <b className="font-display text-[18px]">{s.value}</b>
                 <span className="text-[11.5px] text-ink-soft">{s.label}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
+
+        {isSuspended && (
+          <div className="mt-6 rounded-[20px] bg-pink-500/15 px-5 py-4 text-[13.5px] text-pink-600">
+            <b className="block">Tài khoản của bạn đang bị tạm khoá.</b>
+            {accountStatus?.reason && (
+              <span>Lý do: {accountStatus.reason}. </span>
+            )}
+            Khoá đến hết{" "}
+            {new Date(accountStatus!.suspended_until!).toLocaleDateString("vi-VN")}
+            .
+          </div>
+        )}
 
         {/* SHOPPING LIST SUMMARY */}
         <Link

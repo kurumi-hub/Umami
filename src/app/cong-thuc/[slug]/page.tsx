@@ -10,6 +10,7 @@ import {
   IconUsers,
 } from "@/app/icons";
 import SaveButton from "./SaveButton";
+import DeleteRecipeButton from "./DeleteRecipeButton";
 import RatingWidget from "./RatingWidget";
 import FollowButton from "./FollowButton";
 import ShoppingListButton from "./ShoppingListButton";
@@ -182,11 +183,26 @@ export default async function RecipeDetailPage({
           ← Về trang chủ
         </Link>
 
-        {recipe.is_own_recipe && statusNotice && (
-          <div
-            className={`mb-6 rounded-2xl px-4 py-3 text-[13.5px] font-semibold ${statusNotice.className}`}
-          >
-            {statusNotice.label}
+        {recipe.is_own_recipe && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            {statusNotice ? (
+              <div
+                className={`rounded-2xl px-4 py-3 text-[13.5px] font-semibold ${statusNotice.className}`}
+              >
+                {statusNotice.label}
+              </div>
+            ) : (
+              <span />
+            )}
+            <div className="flex items-center gap-2.5">
+              <Link
+                href={`/account/recipes/${recipe.id}/edit`}
+                className="inline-flex items-center justify-center rounded-full border-2 border-pink-300 px-4 py-2 text-[13px] font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+              >
+                Sửa công thức
+              </Link>
+              <DeleteRecipeButton recipeId={recipe.id} />
+            </div>
           </div>
         )}
 

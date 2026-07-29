@@ -136,3 +136,66 @@ export async function removeAllergen(ingredientId: string) {
   revalidatePath("/account/settings");
   return { error: null };
 }
+
+export async function updatePassword(newPassword: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+  if (newPassword.length < 6) {
+    return { error: "Mật khẩu cần ít nhất 6 ký tự." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+  if (error) {
+    return { error: "Không thể đổi mật khẩu, thử lại sau." };
+  }
+
+  return { error: null };
+}
+
+export async function togglePrivateAccount(isPrivate: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_private: isPrivate })
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: "Không thể cập nhật, thử lại sau." };
+  }
+
+  revalidatePath("/account/settings");
+  return { error: null };
+}
+
+export async function unblockUser(userId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "Cần đăng nhập." };
+
+  const { error } = await supabase
+    .from("blocks")
+    .delete()
+    .eq("blocker_id", user.id)
+    .eq("blocked_id", userId);
+
+  if (error) {
+    return { error: "Không thể bỏ chặn, thử lại sau." };
+  }
+
+  revalidatePath("/account/settings");
+  return { error: null };
+}

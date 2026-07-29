@@ -5,6 +5,9 @@ import { createClient } from "@/utils/supabase/server";
 import ProfileForm from "./ProfileForm";
 import PreferencesForm from "./PreferencesForm";
 import AllergensManager from "./AllergensManager";
+import ChangePasswordForm from "./ChangePasswordForm";
+import PrivateAccountToggle from "./PrivateAccountToggle";
+import BlockedUsersManager from "./BlockedUsersManager";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -18,7 +21,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio")
+    .select("username, display_name, bio, is_private")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -43,6 +46,15 @@ export default async function SettingsPage() {
   const allergens = (allergenRows ?? [])
     .map((row) => (Array.isArray(row.ingredients) ? row.ingredients[0] : row.ingredients))
     .filter(Boolean) as { id: string; name: string }[];
+
+  const { data: blockedRows } = await supabase
+    .from("blocks")
+    .select("blocked_id, profiles!blocks_blocked_id_fkey(id, username, display_name)")
+    .eq("blocker_id", user.id);
+
+  const blocked = (blockedRows ?? [])
+    .map((row) => (Array.isArray(row.profiles) ? row.profiles[0] : row.profiles))
+    .filter(Boolean) as { id: string; username: string; display_name: string | null }[];
 
   return (
     <div className="flex flex-col flex-1">
@@ -70,6 +82,14 @@ export default async function SettingsPage() {
         </section>
 
         <section className="mb-10">
+          <h2 className="mb-4 text-[17px] font-bold">Bảo mật</h2>
+          <div className="flex flex-col gap-4">
+            <ChangePasswordForm />
+            <PrivateAccountToggle initialIsPrivate={profile?.is_private ?? false} />
+          </div>
+        </section>
+
+        <section className="mb-10">
           <h2 className="mb-4 text-[17px] font-bold">Sở thích nấu ăn</h2>
           <PreferencesForm
             initialUnits={(preferences?.units as "metric" | "imperial") ?? "metric"}
@@ -79,9 +99,14 @@ export default async function SettingsPage() {
           />
         </section>
 
-        <section>
+        <section className="mb-10">
           <h2 className="mb-4 text-[17px] font-bold">Dị ứng thực phẩm</h2>
           <AllergensManager initialAllergens={allergens} />
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-[17px] font-bold">Đã chặn</h2>
+          <BlockedUsersManager initialBlocked={blocked} />
         </section>
       </div>
     </div>
