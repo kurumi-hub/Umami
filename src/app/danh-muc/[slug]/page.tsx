@@ -44,16 +44,6 @@ function formatRating(rating: number | string | null) {
   return n && n > 0 ? n.toFixed(1) : "Chưa có";
 }
 
-function Stars() {
-  return (
-    <div className="flex gap-0.5 text-mango">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <IconStar key={i} className="w-3.5 h-3.5" />
-      ))}
-    </div>
-  );
-}
-
 function RecipeCard({ r }: { r: RecipeRow }) {
   return (
     <Link
@@ -69,8 +59,8 @@ function RecipeCard({ r }: { r: RecipeRow }) {
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">{r.title}</h4>
-        <p className="mt-1 text-[12.5px] text-ink-soft">
+        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">{r.title}</h4>
+        <p className="mt-1 text-[12.5px] text-ink-soft truncate">
           {r.author_name || "Cộng đồng Umami"}
         </p>
         <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">
@@ -79,7 +69,7 @@ function RecipeCard({ r }: { r: RecipeRow }) {
             {formatMinutes(r.total_time_min)}
           </span>
           <span className="flex items-center gap-1">
-            <Stars />
+            <IconStar className="w-3.5 h-3.5 text-mango" />
             {formatRating(r.avg_rating)}
           </span>
         </div>

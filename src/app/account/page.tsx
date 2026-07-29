@@ -302,7 +302,7 @@ export default async function AccountPage() {
                       </span>
                     </div>
                     <div className="p-3.5">
-                      <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2">
+                      <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                         {r.title}
                       </h4>
                       <div className="mt-2 flex items-center justify-between text-[11.5px] text-ink-soft">
@@ -360,7 +360,7 @@ export default async function AccountPage() {
                     )}
                   </div>
                   <div className="p-3.5">
-                    <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2">
+                    <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                       {r.title}
                     </h4>
                     <span className="mt-2 flex items-center gap-1 text-[11.5px] text-ink-soft">

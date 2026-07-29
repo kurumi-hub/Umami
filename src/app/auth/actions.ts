@@ -14,8 +14,22 @@ export async function login(
 ): Promise<AuthState> {
   const supabase = await createClient();
 
-  const email = String(formData.get("email") || "");
+  const identifier = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
+
+  // Cho phép đăng nhập bằng email HOẶC username. Nếu không có "@" thì
+  // coi là username, tra ra email thật qua RPC rồi mới đăng nhập —
+  // Supabase Auth chỉ chấp nhận email.
+  let email = identifier;
+  if (identifier && !identifier.includes("@")) {
+    const { data: resolvedEmail } = await supabase.rpc("get_email_by_username", {
+      p_username: identifier,
+    });
+    // Không tìm thấy username cũng không báo lỗi riêng ở đây — để
+    // signInWithPassword bên dưới tự thất bại và trả về đúng 1 thông
+    // báo lỗi chung chung, tránh lộ username nào tồn tại hay không.
+    email = resolvedEmail || identifier;
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -31,7 +45,7 @@ export async function login(
       );
     }
 
-    return { error: "Email hoặc mật khẩu không đúng." };
+    return { error: "Email/username hoặc mật khẩu không đúng." };
   }
 
   redirect("/");

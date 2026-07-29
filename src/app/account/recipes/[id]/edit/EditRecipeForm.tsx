@@ -26,6 +26,17 @@ const tagTypeLabels: Record<string, string> = {
   diet: "Chế độ ăn",
 };
 
+type NutritionValue = {
+  calories: number | null;
+  proteinG: number | null;
+  fatG: number | null;
+  carbsG: number | null;
+  fiberG: number | null;
+  sugarG: number | null;
+  sodiumMg: number | null;
+  perServing: boolean;
+} | null;
+
 let nextKey = 1;
 
 export default function EditRecipeForm({
@@ -41,6 +52,7 @@ export default function EditRecipeForm({
   initialIngredients,
   initialSteps,
   initialTagIds,
+  initialNutrition,
 }: {
   recipeId: string;
   tags: Tag[];
@@ -54,6 +66,7 @@ export default function EditRecipeForm({
   initialIngredients: { name: string; quantity: number | null; unit: string | null; isOptional: boolean }[];
   initialSteps: { content: string; timerSeconds: number | null }[];
   initialTagIds: string[];
+  initialNutrition: NutritionValue;
 }) {
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
@@ -63,6 +76,29 @@ export default function EditRecipeForm({
   const [servingsUnit, setServingsUnit] = useState(initialServingsUnit);
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(initialDifficulty);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialTagIds);
+
+  const [calories, setCalories] = useState(
+    initialNutrition?.calories != null ? String(initialNutrition.calories) : ""
+  );
+  const [proteinG, setProteinG] = useState(
+    initialNutrition?.proteinG != null ? String(initialNutrition.proteinG) : ""
+  );
+  const [fatG, setFatG] = useState(
+    initialNutrition?.fatG != null ? String(initialNutrition.fatG) : ""
+  );
+  const [carbsG, setCarbsG] = useState(
+    initialNutrition?.carbsG != null ? String(initialNutrition.carbsG) : ""
+  );
+  const [fiberG, setFiberG] = useState(
+    initialNutrition?.fiberG != null ? String(initialNutrition.fiberG) : ""
+  );
+  const [sugarG, setSugarG] = useState(
+    initialNutrition?.sugarG != null ? String(initialNutrition.sugarG) : ""
+  );
+  const [sodiumMg, setSodiumMg] = useState(
+    initialNutrition?.sodiumMg != null ? String(initialNutrition.sodiumMg) : ""
+  );
+  const [perServing, setPerServing] = useState(initialNutrition?.perServing ?? true);
 
   const [ingredients, setIngredients] = useState<IngredientRow[]>(
     initialIngredients.length > 0
@@ -129,6 +165,22 @@ export default function EditRecipeForm({
         timerSeconds: r.timerMinutes.trim() ? parseInt(r.timerMinutes, 10) * 60 : null,
       })),
       tagIds: selectedTags,
+      nutrition: (() => {
+        const vals = {
+          calories: calories.trim() ? parseFloat(calories) : null,
+          proteinG: proteinG.trim() ? parseFloat(proteinG) : null,
+          fatG: fatG.trim() ? parseFloat(fatG) : null,
+          carbsG: carbsG.trim() ? parseFloat(carbsG) : null,
+          fiberG: fiberG.trim() ? parseFloat(fiberG) : null,
+          sugarG: sugarG.trim() ? parseFloat(sugarG) : null,
+          sodiumMg: sodiumMg.trim() ? parseFloat(sodiumMg) : null,
+          perServing,
+        };
+        const hasAny = Object.entries(vals).some(
+          ([k, v]) => k !== "perServing" && v !== null
+        );
+        return hasAny ? vals : null;
+      })(),
     };
 
     if (payload.title.trim().length < 3) {
@@ -330,6 +382,97 @@ export default function EditRecipeForm({
           <IconPlus className="h-3.5 w-3.5" />
           Thêm bước
         </button>
+      </section>
+
+      {/* DINH DƯỠNG */}
+      <section>
+        <h2 className="mb-1 text-[16px] font-bold">Dinh dưỡng</h2>
+        <p className="mb-3 text-[12.5px] text-ink-soft">
+          Không bắt buộc — để trống nếu bạn chưa có số liệu chính xác.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Calo (kcal)</span>
+            <input
+              type="number"
+              min={0}
+              value={calories}
+              onChange={(e) => setCalories(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Đạm (g)</span>
+            <input
+              type="number"
+              min={0}
+              value={proteinG}
+              onChange={(e) => setProteinG(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Béo (g)</span>
+            <input
+              type="number"
+              min={0}
+              value={fatG}
+              onChange={(e) => setFatG(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Tinh bột (g)</span>
+            <input
+              type="number"
+              min={0}
+              value={carbsG}
+              onChange={(e) => setCarbsG(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Chất xơ (g)</span>
+            <input
+              type="number"
+              min={0}
+              value={fiberG}
+              onChange={(e) => setFiberG(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Đường (g)</span>
+            <input
+              type="number"
+              min={0}
+              value={sugarG}
+              onChange={(e) => setSugarG(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+          <label className="block">
+            <span className="text-[12.5px] font-semibold text-ink-soft">Natri (mg)</span>
+            <input
+              type="number"
+              min={0}
+              value={sodiumMg}
+              onChange={(e) => setSodiumMg(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[14px] outline-none focus:border-pink-500"
+            />
+          </label>
+        </div>
+        <label className="flex items-center gap-2.5">
+          <input
+            type="checkbox"
+            checked={perServing}
+            onChange={(e) => setPerServing(e.target.checked)}
+            className="h-4 w-4 rounded border-pink-300/70 text-pink-500"
+          />
+          <span className="text-[13px] text-ink-soft">
+            Số liệu trên tính cho mỗi khẩu phần (bỏ tick nếu tính cho cả món)
+          </span>
+        </label>
       </section>
 
       {Object.keys(tagsByType).length > 0 && (

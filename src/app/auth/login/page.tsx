@@ -21,11 +21,11 @@ function LoginForm() {
       )}
 
       <AuthField
-        label="Email"
+        label="Email hoặc username"
         name="email"
-        type="email"
-        placeholder="ban@email.com"
-        autoComplete="email"
+        type="text"
+        placeholder="ban@email.com hoặc username"
+        autoComplete="username"
       />
       <div>
         <AuthField

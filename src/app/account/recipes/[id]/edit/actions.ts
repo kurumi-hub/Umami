@@ -27,6 +27,17 @@ type StepInput = {
   timerSeconds: number | null;
 };
 
+export type NutritionInput = {
+  calories: number | null;
+  proteinG: number | null;
+  fatG: number | null;
+  carbsG: number | null;
+  fiberG: number | null;
+  sugarG: number | null;
+  sodiumMg: number | null;
+  perServing: boolean;
+} | null;
+
 export type RecipeEditPayload = {
   title: string;
   description: string;
@@ -38,6 +49,7 @@ export type RecipeEditPayload = {
   ingredients: IngredientInput[];
   steps: StepInput[];
   tagIds: string[];
+  nutrition: NutritionInput;
 };
 
 export async function updateRecipe(recipeId: string, payload: RecipeEditPayload) {
@@ -177,6 +189,30 @@ export async function updateRecipe(recipeId: string, payload: RecipeEditPayload)
     if (tagError) {
       return { error: "Không thể lưu thẻ phân loại, thử lại sau." };
     }
+  }
+
+  if (payload.nutrition) {
+    const n = payload.nutrition;
+    const { error: nutritionError } = await supabase.from("recipe_nutrition").upsert(
+      {
+        recipe_id: recipeId,
+        calories: n.calories,
+        protein_g: n.proteinG,
+        fat_g: n.fatG,
+        carbs_g: n.carbsG,
+        fiber_g: n.fiberG,
+        sugar_g: n.sugarG,
+        sodium_mg: n.sodiumMg,
+        per_serving: n.perServing,
+      },
+      { onConflict: "recipe_id" }
+    );
+    if (nutritionError) {
+      return { error: "Không thể lưu thông tin dinh dưỡng, thử lại sau." };
+    }
+  } else {
+    // Người dùng đã xoá hết số liệu dinh dưỡng -> xoá luôn dòng cũ.
+    await supabase.from("recipe_nutrition").delete().eq("recipe_id", recipeId);
   }
 
   revalidatePath(`/cong-thuc/${existing.slug}`);

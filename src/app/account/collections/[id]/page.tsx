@@ -250,7 +250,7 @@ export default async function CollectionDetailPage({
                     <IconBowl className="w-14 h-14 text-pink-400" />
                   </div>
                   <div className="p-4">
-                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">
+                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                       {r.title}
                     </h4>
                     <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">

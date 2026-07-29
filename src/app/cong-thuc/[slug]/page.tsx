@@ -275,16 +275,16 @@ export default async function RecipeDetailPage({
           <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
             <Link
               href={`/u/${recipe.author.username}`}
-              className="flex items-center gap-3 group"
+              className="flex items-center gap-3 group min-w-0"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-100">
                 <IconChefHat className="h-5 w-5 text-pink-500" />
               </div>
-              <div>
-                <b className="text-[14px] group-hover:text-pink-600 transition-colors">
+              <div className="min-w-0">
+                <b className="block truncate text-[14px] group-hover:text-pink-600 transition-colors">
                   {recipe.author.display_name || recipe.author.username}
                 </b>
-                <span className="ml-2 text-[13px] text-ink-soft">
+                <span className="block truncate text-[13px] text-ink-soft">
                   @{recipe.author.username}
                 </span>
               </div>

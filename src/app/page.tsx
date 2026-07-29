@@ -117,16 +117,6 @@ function formatRating(rating: number | string | null) {
   return n && n > 0 ? n.toFixed(1) : "Chưa có";
 }
 
-function Stars() {
-  return (
-    <div className="flex gap-0.5 text-mango">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <IconStar key={i} className="w-3.5 h-3.5" />
-      ))}
-    </div>
-  );
-}
-
 function Logo({ light = false }: { light?: boolean }) {
   return (
     <div
@@ -161,8 +151,8 @@ function RecipeCard({ r }: { r: RecipeRow }) {
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">{r.title}</h4>
-        <p className="mt-1 text-[12.5px] text-ink-soft">
+        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">{r.title}</h4>
+        <p className="mt-1 text-[12.5px] text-ink-soft truncate">
           {r.author_name || "Cộng đồng Umami"}
         </p>
         <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">
@@ -171,7 +161,7 @@ function RecipeCard({ r }: { r: RecipeRow }) {
             {formatMinutes(r.total_time_min)}
           </span>
           <span className="flex items-center gap-1">
-            <Stars />
+            <IconStar className="w-3.5 h-3.5 text-mango" />
             {formatRating(r.avg_rating)}
           </span>
         </div>
@@ -211,7 +201,7 @@ function PantryRecipeCard({ r }: { r: PantryRecipeRow }) {
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">{r.title}</h4>
+        <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">{r.title}</h4>
         <div className="mt-3 flex items-center justify-between text-[12.5px] text-ink-soft">
           <span className="flex items-center gap-1">
             <IconClock className="w-3.5 h-3.5" />
@@ -310,11 +300,12 @@ export default async function Home() {
             người yêu nấu nướng khắp Việt Nam.
           </p>
 
-          <form className="mt-8 max-w-[560px] mx-auto">
+          <form action="/tim-kiem" method="GET" className="mt-8 max-w-[560px] mx-auto">
             <label className="relative flex items-center">
               <IconSearch className="absolute left-5 w-5 h-5 text-ink-soft" />
               <input
                 type="search"
+                name="q"
                 placeholder="Tìm công thức, nguyên liệu, đầu bếp..."
                 className="w-full rounded-full border border-pink-300/70 bg-surface pl-14 pr-5 py-4 text-[15px] text-ink outline-none transition-colors placeholder:text-ink-soft/60 focus:border-pink-500 focus:ring-4 focus:ring-pink-500/15"
               />
@@ -527,10 +518,10 @@ export default async function Home() {
                   <IconBowl className="w-14 h-14 text-pink-400" />
                 </div>
                 <div className="p-4">
-                  <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">
+                  <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                     {r.title}
                   </h4>
-                  <p className="mt-1 text-[12.5px] text-ink-soft">
+                  <p className="mt-1 text-[12.5px] text-ink-soft truncate">
                     {r.author_name || "Ẩn danh"}
                   </p>
                 </div>
@@ -564,10 +555,10 @@ export default async function Home() {
                   <div className="w-16 h-16 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-pink-100">
                     <IconChefHat className="w-7 h-7 text-pink-500" />
                   </div>
-                  <h4 className="text-[14.5px] font-bold">
+                  <h4 className="text-[14.5px] font-bold truncate">
                     {c.display_name || c.username}
                   </h4>
-                  <span className="text-[12px] text-ink-soft">@{c.username}</span>
+                  <span className="block text-[12px] text-ink-soft truncate">@{c.username}</span>
                   <div className="mt-2 text-[12px] font-semibold text-pink-600">
                     {c.recipe_count} công thức
                   </div>
@@ -622,10 +613,10 @@ export default async function Home() {
                   )}
                 </div>
                 <div className="p-4">
-                  <h4 className="text-[15px] font-bold leading-snug line-clamp-2">
+                  <h4 className="text-[15px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                     {c.name}
                   </h4>
-                  <p className="mt-1 text-[12px] text-ink-soft">
+                  <p className="mt-1 text-[12px] text-ink-soft truncate">
                     {c.owner_name || c.owner_username} · {c.recipe_count} công thức
                   </p>
                 </div>

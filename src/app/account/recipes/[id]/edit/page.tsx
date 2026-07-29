@@ -31,27 +31,37 @@ export default async function EditRecipePage({
     notFound();
   }
 
-  const [{ data: ingredientRows }, { data: stepRows }, { data: tagRows }, { data: tags }] =
-    await Promise.all([
-      supabase
-        .from("recipe_ingredients")
-        .select("quantity, unit, is_optional, position, ingredients(name)")
-        .eq("recipe_id", id)
-        .order("position", { ascending: true }),
-      supabase
-        .from("recipe_steps")
-        .select("content, timer_seconds, position")
-        .eq("recipe_id", id)
-        .order("position", { ascending: true }),
-      supabase.from("recipe_tags").select("tag_id").eq("recipe_id", id),
-      supabase
-        .from("tags")
-        .select("id, type, name")
-        .in("type", ["cuisine", "meal_type", "diet"])
-        .order("type", { ascending: true })
-        .order("position", { ascending: true })
-        .limit(60),
-    ]);
+  const [
+    { data: ingredientRows },
+    { data: stepRows },
+    { data: tagRows },
+    { data: tags },
+    { data: nutritionRow },
+  ] = await Promise.all([
+    supabase
+      .from("recipe_ingredients")
+      .select("quantity, unit, is_optional, position, ingredients(name)")
+      .eq("recipe_id", id)
+      .order("position", { ascending: true }),
+    supabase
+      .from("recipe_steps")
+      .select("content, timer_seconds, position")
+      .eq("recipe_id", id)
+      .order("position", { ascending: true }),
+    supabase.from("recipe_tags").select("tag_id").eq("recipe_id", id),
+    supabase
+      .from("tags")
+      .select("id, type, name")
+      .in("type", ["cuisine", "meal_type", "diet"])
+      .order("type", { ascending: true })
+      .order("position", { ascending: true })
+      .limit(60),
+    supabase
+      .from("recipe_nutrition")
+      .select("calories, protein_g, fat_g, carbs_g, fiber_g, sugar_g, sodium_mg, per_serving")
+      .eq("recipe_id", id)
+      .maybeSingle(),
+  ]);
 
   const ingredients = (ingredientRows ?? []).map((row) => {
     const ing = Array.isArray(row.ingredients) ? row.ingredients[0] : row.ingredients;
@@ -99,6 +109,20 @@ export default async function EditRecipePage({
           initialIngredients={ingredients}
           initialSteps={steps}
           initialTagIds={tagIds}
+          initialNutrition={
+            nutritionRow
+              ? {
+                  calories: nutritionRow.calories,
+                  proteinG: nutritionRow.protein_g,
+                  fatG: nutritionRow.fat_g,
+                  carbsG: nutritionRow.carbs_g,
+                  fiberG: nutritionRow.fiber_g,
+                  sugarG: nutritionRow.sugar_g,
+                  sodiumMg: nutritionRow.sodium_mg,
+                  perServing: nutritionRow.per_serving,
+                }
+              : null
+          }
         />
       </div>
     </div>

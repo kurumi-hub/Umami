@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AppHeader from "@/app/components/AppHeader";
 import { createClient } from "@/utils/supabase/server";
-import { IconBowl, IconChefHat, IconClipboard, IconClock, IconLock } from "@/app/icons";
+import { IconBowl, IconChefHat, IconClipboard, IconClock, IconHeart, IconLock, IconUsers } from "@/app/icons";
 import FollowActionButtons from "./FollowActionButtons";
 
 type RecipeItem = {
@@ -122,10 +122,12 @@ export default async function PublicProfilePage({
                 <span className="text-[11.5px] text-ink-soft">Công thức</span>
               </div>
               <div className="flex flex-col items-center gap-1 rounded-[18px] bg-pink-50 px-3 py-4 text-center">
+                <IconUsers className="h-5 w-5 text-pink-500" />
                 <b className="font-display text-[18px]">{profile.follower_count ?? 0}</b>
                 <span className="text-[11.5px] text-ink-soft">Người theo dõi</span>
               </div>
               <div className="flex flex-col items-center gap-1 rounded-[18px] bg-pink-50 px-3 py-4 text-center">
+                <IconHeart className="h-5 w-5 text-pink-500" />
                 <b className="font-display text-[18px]">{profile.following_count ?? 0}</b>
                 <span className="text-[11.5px] text-ink-soft">Đang theo dõi</span>
               </div>
@@ -163,7 +165,7 @@ export default async function PublicProfilePage({
                         )}
                       </div>
                       <div className="p-3.5">
-                        <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2">
+                        <h4 className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                           {r.title}
                         </h4>
                         <span className="mt-2 flex items-center gap-1 text-[11.5px] text-ink-soft">

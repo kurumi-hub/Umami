@@ -98,7 +98,7 @@ export default async function SavedRecipesPage({
                     )}
                   </div>
                   <div className="p-4">
-                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">
+                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                       {r.title}
                     </h4>
                     <span className="mt-3 flex items-center gap-1 text-[12.5px] text-ink-soft">

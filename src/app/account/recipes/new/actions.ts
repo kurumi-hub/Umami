@@ -27,6 +27,17 @@ type StepInput = {
   timerSeconds: number | null;
 };
 
+export type NutritionInput = {
+  calories: number | null;
+  proteinG: number | null;
+  fatG: number | null;
+  carbsG: number | null;
+  fiberG: number | null;
+  sugarG: number | null;
+  sodiumMg: number | null;
+  perServing: boolean;
+} | null;
+
 export type RecipePayload = {
   title: string;
   description: string;
@@ -38,6 +49,7 @@ export type RecipePayload = {
   ingredients: IngredientInput[];
   steps: StepInput[];
   tagIds: string[];
+  nutrition: NutritionInput;
 };
 
 export async function createRecipe(payload: RecipePayload) {
@@ -184,6 +196,24 @@ export async function createRecipe(payload: RecipePayload) {
     );
     if (tagError) {
       return { error: "Không thể lưu thẻ phân loại, thử lại sau." };
+    }
+  }
+
+  if (payload.nutrition) {
+    const n = payload.nutrition;
+    const { error: nutritionError } = await supabase.from("recipe_nutrition").insert({
+      recipe_id: recipeId,
+      calories: n.calories,
+      protein_g: n.proteinG,
+      fat_g: n.fatG,
+      carbs_g: n.carbsG,
+      fiber_g: n.fiberG,
+      sugar_g: n.sugarG,
+      sodium_mg: n.sodiumMg,
+      per_serving: n.perServing,
+    });
+    if (nutritionError) {
+      return { error: "Không thể lưu thông tin dinh dưỡng, thử lại sau." };
     }
   }
 

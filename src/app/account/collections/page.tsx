@@ -113,7 +113,7 @@ export default async function CollectionsListPage({
                     </span>
                   </div>
                   <div className="p-4">
-                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2">
+                    <h4 className="text-[15.5px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                       {c.name}
                     </h4>
                     <span className="text-[12.5px] text-ink-soft">

@@ -120,10 +120,10 @@ export default async function DiscoverCollectionsPage({
                       )}
                     </div>
                     <div className="p-4 pb-2">
-                      <h4 className="text-[15px] font-bold leading-snug line-clamp-2">
+                      <h4 className="text-[15px] font-bold leading-snug line-clamp-2 min-h-[2.75em]">
                         {c.name}
                       </h4>
-                      <p className="mt-1 text-[12px] text-ink-soft">
+                      <p className="mt-1 text-[12px] text-ink-soft truncate">
                         {c.owner_name || c.owner_username} · {c.recipe_count} công thức
                       </p>
                       <span className="mt-1.5 flex items-center gap-1 text-[11.5px] text-ink-soft">
