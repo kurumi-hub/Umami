@@ -23,48 +23,6 @@ cp .env.example .env.local   # điền NEXT_PUBLIC_SUPABASE_URL và NEXT_PUBLIC_
 npm run dev
 ```
 
-## Thiết lập database
-
-Chạy các file SQL trong Supabase SQL Editor theo **đúng thứ tự dưới
-đây** (một số RPC sau này chỉnh sửa lại RPC ở bước trước, nên thứ tự
-quan trọng). Mỗi file đều idempotent (`create or replace function`,
-`on conflict do nothing`...) nên chạy lại không sao, trừ khi có ghi chú
-khác.
-
-| # | File | Nội dung |
-|---|---|---|
-| 1 | `tasty_schema_v3.sql` | Schema gốc: bảng, enum, trigger, RLS, RPC nền tảng |
-| 2 | `home_recommendation_rpcs.sql` | RPC trang chủ: `trending_recipes`, `recommended_for_you`, `quick_recipes`, `random_recipes`, `popular_tags`, `new_from_following_recipes` |
-| 3 | `recipe_detail_rpc.sql` | `get_recipe_detail`, `log_recipe_view` (bản đầu) |
-| 4 | `recipe_interactions_rpcs.sql` | Nâng cấp `get_recipe_detail` (dị ứng, pantry, follow); `rate_recipe`, `add_recipe_tip`, `toggle_tip_like`, `add_tip_reply`, `get_tip_replies`, `report_content`, `add_recipe_to_my_shopping_list`, `toggle_follow` |
-| 5 | `tag_recipes_rpc.sql` | `get_tag_by_slug`, `recipes_by_tag` (trang `/danh-muc/[slug]`) |
-| 6 | `pantry_home_rpc.sql` | `recipes_from_pantry_for_home` (mục "Từ tủ lạnh của bạn") |
-| 7 | `seed_20_recipes.sql` | 20 công thức mẫu đầu, gắn cho user đầu tiên |
-| 8 | `seed_20_recipes_batch2.sql` | 20 công thức mẫu tiếp theo |
-| 9 | `shopping_list_servings_scale.sql` | `add_recipe_to_shopping_list`/`add_recipe_to_my_shopping_list` — thêm scale theo khẩu phần |
-| 10 | `ingredients_insert_policy.sql` | RLS INSERT cho bảng `ingredients` (cần để đăng công thức mới) |
-| 11 | `meal_plan_rpc.sql` | `get_week_meal_plan` |
-| 12 | `pantry_quantity_match.sql` | Nâng cấp `recipes_from_pantry`/`recipes_from_pantry_for_home` — so khớp theo số lượng thật thay vì chỉ "có/không" |
-| 13 | `public_profile_rpc.sql` | `get_public_profile` (trang `/u/[username]`) |
-| 14 | `notifications_rpcs.sql` | `get_my_notifications`, `mark_notification_read`, `mark_all_notifications_read` |
-| 15 | `collections_discover_rpcs.sql` | `featured_collections`, `search_public_collections` (trang `/bo-suu-tap`) |
-| 16 | `community_feed_rpc.sql` | `community_feed` — feed trộn 2:1 (theo dõi : khám phá) |
-
-Các file `fix_*.sql` và `diagnose_homepage_empty.sql` là script chẩn
-đoán/vá lỗi phát sinh trong quá trình seed dữ liệu mẫu ban đầu (trigger
-kiểm duyệt hạ status công thức về `pending_review`) — **không cần chạy
-cho môi trường mới**, vì bản `seed_20_recipes*.sql` hiện tại đã tự xử
-lý việc đó (tự tắt trigger bảo vệ, đánh dấu tác giả `is_trusted` trước
-khi seed).
-
-### Sau khi seed
-
-Một vài tính năng cần dữ liệu tag chưa có sẵn trong seed, phải tự thêm
-qua RPC `mod_upsert_tag` (dành cho moderator) nếu muốn dùng:
-
-- Tag `type = 'diet'` (Chay, Keto, Ít carb...) — cần cho mục "Chế độ ăn
-  ưu tiên" trong Cài đặt và bộ lọc gợi ý cá nhân hoá.
-
 ## Cấu trúc thư mục chính
 
 ```
@@ -114,13 +72,3 @@ thông báo, kết nối (follow/chặn/duyệt yêu cầu), xem hồ sơ ngư�
 tập, thêm vào đi chợ (chọn khẩu phần, tự scale số lượng), theo dõi tác
 giả, cảnh báo dị ứng, tô "có sẵn" theo tủ lạnh, đổi đơn vị đo, scale
 khẩu phần, báo cáo nội dung, sửa/xoá (nếu là công thức của bạn).
-
-## Việc còn thiếu / để sau
-
-- Trang tìm kiếm thật (`search_recipes` RPC đã có, chưa nối UI)
-- Upload ảnh công thức/avatar (hiện chỉ nhận URL nếu có, không có UI
-  upload — `thumbnail_url`/`avatar_url`/`cover_url` phần lớn đang trống)
-- Cài đặt thông báo chi tiết theo từng loại (`notification_settings`)
-- Nhiều danh sách đi chợ, gộp số lượng nguyên liệu trùng giữa các công
-  thức
-- Lịch sử tìm kiếm (`search_history`)
