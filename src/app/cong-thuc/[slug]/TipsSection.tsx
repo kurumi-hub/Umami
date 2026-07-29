@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { IconHeart } from "@/app/icons";
+import Link from "next/link";
+import { IconChefHat, IconHeart } from "@/app/icons";
 import {
   addRecipeTip,
   addTipReply,
@@ -36,10 +37,14 @@ function TipRow({
   tip,
   slug,
   isLoggedIn,
+  myUsername,
+  myDisplayName,
 }: {
   tip: Tip;
   slug: string;
   isLoggedIn: boolean;
+  myUsername: string;
+  myDisplayName: string;
 }) {
   const [liked, setLiked] = useState(tip.liked_by_me);
   const [likeCount, setLikeCount] = useState(tip.like_count);
@@ -92,8 +97,8 @@ function TipRow({
             id: (result.reply as { id: string }).id,
             body: (result.reply as { body: string }).body,
             created_at: (result.reply as { created_at: string }).created_at,
-            author_name: "Bạn",
-            author_username: "ban",
+            author_name: myDisplayName || myUsername,
+            author_username: myUsername,
           },
         ]);
         setReplyCount((c) => c + 1);
@@ -104,9 +109,35 @@ function TipRow({
 
   return (
     <div className="rounded-[18px] border border-pink-500/10 bg-surface px-4 py-3.5">
-      <div className="flex items-center gap-2 mb-1.5">
-        <b className="text-[13.5px]">{tip.author_name || tip.author_username}</b>
-        <span className="text-[12px] text-ink-soft">@{tip.author_username}</span>
+      <div className="flex items-center gap-2.5 mb-1.5">
+        <Link href={`/u/${tip.author_username}`} className="shrink-0">
+          {tip.author_avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={tip.author_avatar}
+              alt={tip.author_name || tip.author_username}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-100">
+              <IconChefHat className="h-4 w-4 text-pink-500" />
+            </span>
+          )}
+        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/u/${tip.author_username}`}
+            className="text-[13.5px] font-bold hover:text-pink-600 transition-colors"
+          >
+            {tip.author_name || tip.author_username}
+          </Link>
+          <Link
+            href={`/u/${tip.author_username}`}
+            className="text-[12px] text-ink-soft hover:text-pink-600 transition-colors"
+          >
+            @{tip.author_username}
+          </Link>
+        </div>
       </div>
       <p className="text-[14px] leading-relaxed">{tip.body}</p>
 
@@ -139,10 +170,18 @@ function TipRow({
             replies.map((r) => (
               <div key={r.id}>
                 <div className="flex items-center gap-2">
-                  <b className="text-[12.5px]">{r.author_name || r.author_username}</b>
-                  <span className="text-[11.5px] text-ink-soft">
+                  <Link
+                    href={`/u/${r.author_username}`}
+                    className="text-[12.5px] font-bold hover:text-pink-600 transition-colors"
+                  >
+                    {r.author_name || r.author_username}
+                  </Link>
+                  <Link
+                    href={`/u/${r.author_username}`}
+                    className="text-[11.5px] text-ink-soft hover:text-pink-600 transition-colors"
+                  >
                     @{r.author_username}
-                  </span>
+                  </Link>
                 </div>
                 <p className="text-[13px] leading-relaxed">{r.body}</p>
               </div>
@@ -177,11 +216,15 @@ export default function TipsSection({
   slug,
   initialTips,
   isLoggedIn,
+  myUsername,
+  myDisplayName,
 }: {
   recipeId: string;
   slug: string;
   initialTips: Tip[];
   isLoggedIn: boolean;
+  myUsername: string;
+  myDisplayName: string;
 }) {
   const [tips, setTips] = useState(initialTips);
   const [body, setBody] = useState("");
@@ -221,8 +264,8 @@ export default function TipsSection({
             reply_count: t.reply_count,
             created_at: t.created_at,
             author_id: "",
-            author_name: "Bạn",
-            author_username: "ban",
+            author_name: myDisplayName || myUsername,
+            author_username: myUsername,
             author_avatar: null,
             liked_by_me: false,
           },
@@ -266,7 +309,14 @@ export default function TipsSection({
       ) : (
         <div className="flex flex-col gap-4">
           {tips.map((tip) => (
-            <TipRow key={tip.id} tip={tip} slug={slug} isLoggedIn={isLoggedIn} />
+            <TipRow
+              key={tip.id}
+              tip={tip}
+              slug={slug}
+              isLoggedIn={isLoggedIn}
+              myUsername={myUsername}
+              myDisplayName={myDisplayName}
+            />
           ))}
         </div>
       )}

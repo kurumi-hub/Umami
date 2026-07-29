@@ -6,6 +6,7 @@ import {
   IconBowl,
   IconChefHat,
   IconClock,
+  IconEye,
   IconFlame,
   IconUsers,
 } from "@/app/icons";
@@ -171,6 +172,21 @@ export default async function RecipeDetailPage({
   const statusNotice = statusNotices[recipe.status];
   const isLoggedIn = Boolean(user);
 
+  // Lấy username/tên hiển thị thật của người đang xem, để bình luận/trả
+  // lời vừa gửi (cập nhật lạc quan) link đúng /u/[username] thay vì
+  // placeholder giả "Bạn"/"ban".
+  let myUsername = "";
+  let myDisplayName = "";
+  if (user) {
+    const { data: myProfile } = await supabase
+      .from("profiles")
+      .select("username, display_name")
+      .eq("id", user.id)
+      .maybeSingle();
+    myUsername = myProfile?.username ?? "";
+    myDisplayName = myProfile?.display_name ?? "";
+  }
+
   return (
     <div className="flex flex-col flex-1">
       <AppHeader active="discover" />
@@ -257,19 +273,22 @@ export default async function RecipeDetailPage({
         {/* AUTHOR */}
         {recipe.author && (
           <div className="mt-5 flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-3">
+            <Link
+              href={`/u/${recipe.author.username}`}
+              className="flex items-center gap-3 group"
+            >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-100">
                 <IconChefHat className="h-5 w-5 text-pink-500" />
               </div>
               <div>
-                <b className="text-[14px]">
+                <b className="text-[14px] group-hover:text-pink-600 transition-colors">
                   {recipe.author.display_name || recipe.author.username}
                 </b>
                 <span className="ml-2 text-[13px] text-ink-soft">
                   @{recipe.author.username}
                 </span>
               </div>
-            </div>
+            </Link>
             {!recipe.is_own_recipe && (
               <FollowButton
                 authorId={recipe.author.id}
@@ -322,6 +341,7 @@ export default async function RecipeDetailPage({
             <span className="text-[11.5px] text-ink-soft">Lượt lưu</span>
           </div>
           <div className="rounded-[16px] bg-pink-50 px-3 py-4 text-center">
+            <IconEye className="h-5 w-5 text-pink-500 mx-auto mb-1" />
             <b className="block text-[14px]">{recipe.view_count}</b>
             <span className="text-[11.5px] text-ink-soft">Lượt xem</span>
           </div>
@@ -425,6 +445,8 @@ export default async function RecipeDetailPage({
             slug={recipe.slug}
             initialTips={recipe.recent_tips}
             isLoggedIn={isLoggedIn}
+            myUsername={myUsername}
+            myDisplayName={myDisplayName}
           />
         </section>
       </div>

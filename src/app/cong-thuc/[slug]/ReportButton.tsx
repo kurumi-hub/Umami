@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { IconFlag } from "@/app/icons";
 import { reportContent } from "@/app/cong-thuc/actions";
 
 const reasons: { value: string; label: string }[] = [
@@ -57,7 +58,15 @@ export default function ReportButton({
   }
 
   if (status === "sent") {
-    return <span className="text-[12.5px] text-ink-soft">Đã gửi báo cáo, cảm ơn bạn</span>;
+    return (
+      <span
+        aria-label="Đã gửi báo cáo, cảm ơn bạn"
+        title="Đã gửi báo cáo, cảm ơn bạn"
+        className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-pink-300/60 text-ink-soft"
+      >
+        <IconFlag className="h-[18px] w-[18px]" />
+      </span>
+    );
   }
 
   if (!open) {
@@ -65,9 +74,11 @@ export default function ReportButton({
       <button
         type="button"
         onClick={handleOpen}
-        className="text-[12.5px] font-semibold text-ink-soft hover:text-pink-600 transition-colors"
+        aria-label="Báo cáo nội dung này"
+        title="Báo cáo nội dung này"
+        className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-pink-300 text-ink-soft hover:text-pink-600 hover:bg-pink-50 transition-colors"
       >
-        Báo cáo nội dung này
+        <IconFlag className="h-[18px] w-[18px]" />
       </button>
     );
   }

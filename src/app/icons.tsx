@@ -348,3 +348,30 @@ export function IconLogout({ className }: IconProps) {
     </svg>
   );
 }
+
+export function IconEye({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={base} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function IconSparkle({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={base} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
+      <path d="M12 8.2c.5 1.8 1 2.3 2.8 2.8-1.8.5-2.3 1-2.8 2.8-.5-1.8-1-2.3-2.8-2.8 1.8-.5 2.3-1 2.8-2.8Z" />
+    </svg>
+  );
+}
+
+export function IconFlag({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth={base} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 21V4" />
+      <path d="M5 4h12l-2.5 4L17 12H5" />
+    </svg>
+  );
+}
