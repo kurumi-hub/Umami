@@ -35,6 +35,20 @@ export default async function ModPage() {
       <AppHeader active="account" />
 
       <div className="max-w-[880px] mx-auto px-6 py-10 w-full">
+        <div className="mb-6 flex gap-2">
+          <span className="rounded-full bg-pink-500 px-4 py-2 text-[13px] font-bold text-white">
+            Quản trị nội dung
+          </span>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="rounded-full border-2 border-pink-300 px-4 py-2 text-[13px] font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+            >
+              Quản trị hệ thống
+            </Link>
+          )}
+        </div>
+
         <h1 className="font-display font-extrabold text-[26px] sm:text-[32px] mb-2">
           Quản trị nội dung
         </h1>
@@ -66,17 +80,6 @@ export default async function ModPage() {
             </span>
           </div>
         </div>
-
-        {isAdmin && (
-          <div className="mt-8">
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 rounded-full bg-pink-500 px-5 py-2.5 text-[13.5px] font-bold text-white"
-            >
-              Sang trang Admin →
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   );

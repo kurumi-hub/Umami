@@ -32,12 +32,17 @@ export default async function AdminPage() {
       <AppHeader active="account" />
 
       <div className="max-w-[880px] mx-auto px-6 py-10 w-full">
-        <Link
-          href="/mod"
-          className="mb-6 inline-flex items-center gap-1.5 text-[14px] font-semibold text-ink-soft hover:text-pink-600 transition-colors"
-        >
-          ← Về trang Quản trị nội dung
-        </Link>
+        <div className="mb-6 flex gap-2">
+          <Link
+            href="/mod"
+            className="rounded-full border-2 border-pink-300 px-4 py-2 text-[13px] font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+          >
+            Quản trị nội dung
+          </Link>
+          <span className="rounded-full bg-pink-500 px-4 py-2 text-[13px] font-bold text-white">
+            Quản trị hệ thống
+          </span>
+        </div>
 
         <h1 className="font-display font-extrabold text-[26px] sm:text-[32px] mb-2">
           Quản trị hệ thống
