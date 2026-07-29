@@ -110,7 +110,12 @@ export async function createRecipe(payload: RecipePayload) {
       recipeId = data.id;
       finalSlug = data.slug;
     } else if (error && error.code !== "23505") {
-      return { error: "Không thể tạo công thức, thử lại sau." };
+      // TẠM THỜI: in lỗi Postgres thật ra để xác định nguyên nhân, thay
+      // vì thông báo chung chung. Bỏ dòng debug này lại sau khi tìm ra
+      // lỗi thật.
+      return {
+        error: `Không thể tạo công thức [debug: ${error.code} - ${error.message}]`,
+      };
     }
   }
 
