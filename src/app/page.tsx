@@ -548,9 +548,10 @@ export default async function Home() {
           {cooks && cooks.length > 0 ? (
             <div className="flex gap-5 overflow-x-auto pb-2 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-5">
               {(cooks as CookProfile[]).map((c) => (
-                <div
+                <Link
                   key={c.id}
-                  className="shrink-0 w-[160px] md:w-auto bg-surface rounded-[20px] px-5 py-6 text-center border border-pink-500/10"
+                  href={`/u/${c.username}`}
+                  className="shrink-0 w-[160px] md:w-auto bg-surface rounded-[20px] px-5 py-6 text-center border border-pink-500/10 block transition-all hover:-translate-y-1 hover:shadow-[0_16px_30px_-18px_rgba(255,111,145,0.5)]"
                 >
                   <div className="w-16 h-16 rounded-full mx-auto mb-3.5 flex items-center justify-center bg-pink-100">
                     <IconChefHat className="w-7 h-7 text-pink-500" />
@@ -562,7 +563,7 @@ export default async function Home() {
                   <div className="mt-2 text-[12px] font-semibold text-pink-600">
                     {c.recipe_count} công thức
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
