@@ -3,6 +3,8 @@ import Link from "next/link";
 import AppHeader from "@/app/components/AppHeader";
 import { createClient } from "@/utils/supabase/server";
 import RecipeReviewCard, { type ReviewRecipe } from "./RecipeReviewCard";
+import ReportQueueCard from "./ReportQueueCard";
+import { loadReportQueue } from "./reports";
 
 export default async function ModPage() {
   const supabase = await createClient();
@@ -58,6 +60,8 @@ export default async function ModPage() {
     : { data: [] as { id: string; username: string; display_name: string | null }[] };
 
   const authorMap = new Map((authors ?? []).map((a) => [a.id, a]));
+
+  const { groups: reportGroups, error: reportsError } = await loadReportQueue(supabase, "open", 100);
 
   const reviewRecipes: ReviewRecipe[] = queue.map((r) => {
     const author = r.author_id ? authorMap.get(r.author_id) : undefined;
@@ -127,12 +131,34 @@ export default async function ModPage() {
           )}
         </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
-            Hàng đợi báo cáo vi phạm — sắp có
-            <br />
-            <span className="text-[12px]">(mod_report_queue, mod_resolve_report)</span>
+        <section className="mb-10">
+          <div className="mb-4 flex items-center gap-2.5">
+            <h2 className="font-display font-extrabold text-[19px]">
+              Hàng đợi báo cáo vi phạm
+            </h2>
+            <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[12px] font-bold text-pink-600">
+              {reportGroups.length}
+            </span>
           </div>
+
+          {reportsError ? (
+            <div className="rounded-[20px] border border-pink-300/60 px-6 py-10 text-center text-[14px] text-pink-600">
+              Không tải được hàng đợi báo cáo, thử tải lại trang.
+            </div>
+          ) : reportGroups.length === 0 ? (
+            <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
+              Không có báo cáo nào đang chờ xử lý 🎉
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {reportGroups.map((g) => (
+                <ReportQueueCard key={g.key} group={g} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-[20px] border border-dashed border-pink-300/60 px-6 py-10 text-center text-[14px] text-ink-soft">
             Quản lý tag & nguyên liệu — sắp có
             <br />
