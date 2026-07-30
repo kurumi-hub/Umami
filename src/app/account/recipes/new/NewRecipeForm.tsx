@@ -215,47 +215,55 @@ export default function NewRecipeForm({ tags }: { tags: Tag[] }) {
         <h2 className="mb-3 text-[16px] font-bold">Nguyên liệu</h2>
         <div className="flex flex-col gap-2.5">
           {ingredients.map((row) => (
-            <div key={row.key} className="flex items-center gap-2">
-              <input
-                type="number"
-                step="any"
-                min={0}
-                value={row.quantity}
-                onChange={(e) => updateIngredient(row.key, { quantity: e.target.value })}
-                placeholder="SL"
-                className="w-[70px] rounded-xl border border-pink-300/70 bg-surface px-2 py-2 text-[13.5px] outline-none focus:border-pink-500"
-              />
-              <input
-                type="text"
-                value={row.unit}
-                onChange={(e) => updateIngredient(row.key, { unit: e.target.value })}
-                placeholder="Đơn vị"
-                className="w-[90px] rounded-xl border border-pink-300/70 bg-surface px-2 py-2 text-[13.5px] outline-none focus:border-pink-500"
-              />
-              <input
-                type="text"
-                value={row.name}
-                onChange={(e) => updateIngredient(row.key, { name: e.target.value })}
-                placeholder="Tên nguyên liệu"
-                className="flex-1 rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[13.5px] outline-none focus:border-pink-500"
-              />
-              <label className="flex items-center gap-1 shrink-0 text-[11.5px] text-ink-soft">
+            <div
+              key={row.key}
+              className="rounded-xl border border-pink-500/10 bg-pink-50/60 p-2.5 flex flex-col gap-2"
+            >
+              <div className="flex items-center gap-2">
                 <input
-                  type="checkbox"
-                  checked={row.isOptional}
-                  onChange={(e) => updateIngredient(row.key, { isOptional: e.target.checked })}
-                  className="h-3.5 w-3.5 rounded border-pink-300/70 text-pink-500"
+                  type="number"
+                  step="any"
+                  min={0}
+                  value={row.quantity}
+                  onChange={(e) => updateIngredient(row.key, { quantity: e.target.value })}
+                  placeholder="SL"
+                  className="w-[62px] shrink-0 rounded-xl border border-pink-300/70 bg-surface px-2 py-2 text-[13.5px] outline-none focus:border-pink-500"
                 />
-                Tuỳ chọn
-              </label>
-              <button
-                type="button"
-                onClick={() => setIngredients((prev) => prev.filter((r) => r.key !== row.key))}
-                aria-label="Xoá nguyên liệu"
-                className="shrink-0 text-ink-soft hover:text-pink-600"
-              >
-                <IconX className="h-4 w-4" />
-              </button>
+                <input
+                  type="text"
+                  value={row.unit}
+                  onChange={(e) => updateIngredient(row.key, { unit: e.target.value })}
+                  placeholder="Đơn vị"
+                  className="w-[78px] shrink-0 rounded-xl border border-pink-300/70 bg-surface px-2 py-2 text-[13.5px] outline-none focus:border-pink-500"
+                />
+                <input
+                  type="text"
+                  value={row.name}
+                  onChange={(e) => updateIngredient(row.key, { name: e.target.value })}
+                  placeholder="Tên nguyên liệu"
+                  className="flex-1 min-w-0 rounded-xl border border-pink-300/70 bg-surface px-3 py-2 text-[13.5px] outline-none focus:border-pink-500"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-1.5 text-[11.5px] text-ink-soft">
+                  <input
+                    type="checkbox"
+                    checked={row.isOptional}
+                    onChange={(e) => updateIngredient(row.key, { isOptional: e.target.checked })}
+                    className="h-3.5 w-3.5 rounded border-pink-300/70 text-pink-500"
+                  />
+                  Tuỳ chọn
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIngredients((prev) => prev.filter((r) => r.key !== row.key))}
+                  aria-label="Xoá nguyên liệu"
+                  className="flex items-center gap-1 text-[11.5px] font-semibold text-ink-soft hover:text-pink-600"
+                >
+                  <IconX className="h-3.5 w-3.5" />
+                  Xoá
+                </button>
+              </div>
             </div>
           ))}
         </div>
