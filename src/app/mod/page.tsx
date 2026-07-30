@@ -7,6 +7,7 @@ import ReportQueueCard from "./ReportQueueCard";
 import { loadReportQueue } from "./reports";
 import TagIngredientManager from "./TagIngredientManager";
 import UserModerationPanel from "./UserModerationPanel";
+import HiddenRecipesManager from "./HiddenRecipesManager";
 
 export default async function ModPage() {
   const supabase = await createClient();
@@ -164,8 +165,12 @@ export default async function ModPage() {
           <TagIngredientManager />
         </section>
 
-        <section>
+        <section className="mb-10">
           <UserModerationPanel />
+        </section>
+
+        <section>
+          <HiddenRecipesManager />
         </section>
       </div>
     </div>

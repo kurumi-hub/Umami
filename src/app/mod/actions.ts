@@ -412,3 +412,42 @@ export async function rejectRecipe(recipeId: string, reason: string) {
   revalidatePath("/cong-thuc/[slug]", "page");
   return { error: null };
 }
+
+// ---------------------------------------------------------------------
+// Công thức đã ẩn — tìm lại và hiện lại
+// ---------------------------------------------------------------------
+
+export async function searchHiddenRecipes(query: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("mod_search_hidden_recipes", {
+    q: query.trim() || null,
+    lim: 20,
+  });
+
+  if (error) {
+    return { error: error.message || "Không thể tải danh sách công thức đã ẩn.", recipes: [] };
+  }
+
+  return { error: null, recipes: data ?? [] };
+}
+
+export async function unhideRecipe(recipeId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const guard = requireLogin(user);
+  if (guard) return guard;
+
+  const { error } = await supabase.rpc("mod_set_recipe_hidden", {
+    p_recipe_id: recipeId,
+    p_hidden: false,
+  });
+
+  if (error) return { error: error.message || "Không thể hiện lại công thức." };
+
+  revalidatePath("/mod");
+  revalidatePath("/cong-thuc/[slug]", "page");
+  return { error: null };
+}
