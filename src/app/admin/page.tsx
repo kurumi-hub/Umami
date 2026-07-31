@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import ModerationSettingsForm from "./ModerationSettingsForm";
 import RoleManager from "./RoleManager";
 import DeleteRecipeForm from "./DeleteRecipeForm";
+import DashboardStats from "./DashboardStats";
 
 const actionLabels: Record<string, string> = {
   grant_role: "Cấp quyền",
@@ -35,7 +36,14 @@ function timeAgo(iso: string) {
   return `${days} ngày trước`;
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string }>;
+}) {
+  const { days: daysParam } = await searchParams;
+  const days = [7, 30, 90].includes(Number(daysParam)) ? Number(daysParam) : 30;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -111,6 +119,10 @@ export default async function AdminPage() {
         </p>
 
         <div className="flex flex-col gap-10">
+          <section>
+            <DashboardStats days={days} />
+          </section>
+
           <section>
             <h2 className="mb-3 text-[16px] font-bold">Cài đặt kiểm duyệt</h2>
             <ModerationSettingsForm

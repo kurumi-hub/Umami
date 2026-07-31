@@ -19,7 +19,6 @@ import CollectionsMenu from "./CollectionsMenu";
 import ReportButton from "./ReportButton";
 import IngredientsPanel from "./IngredientsPanel";
 import TipsSection from "./TipsSection";
-import ModReviewPanel from "./ModReviewPanel";
 
 type Ingredient = {
   id: string;
@@ -87,6 +86,7 @@ type RecipeDetail = {
   servings_unit: string | null;
   difficulty: string | null;
   status: string;
+  is_hidden: boolean;
   avg_rating: number | string | null;
   rating_count: number;
   save_count: number;
@@ -159,16 +159,6 @@ export default async function RecipeDetailPage({
 
   const recipe = data as RecipeDetail;
 
-  let isModerator = false;
-  if (user && !recipe.is_own_recipe) {
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-    const roleSet = new Set((roles ?? []).map((r) => r.role));
-    isModerator = roleSet.has("moderator") || roleSet.has("admin");
-  }
-
   // Ghi nhận lượt xem — không chặn render nếu lỗi (vd bị rate-limit).
   await supabase.rpc("log_recipe_view", {
     p_recipe_id: recipe.id,
@@ -233,16 +223,11 @@ export default async function RecipeDetailPage({
           </div>
         )}
 
-        {isModerator && statusNotice && (
-          <div className="mb-6">
-            <div
-              className={`mb-3 rounded-2xl px-4 py-3 text-[13.5px] font-semibold ${statusNotice.className}`}
-            >
-              Bạn đang xem với quyền quản trị — bài này chưa được công khai cho người khác.
-            </div>
-            {recipe.status === "pending_review" && (
-              <ModReviewPanel recipeId={recipe.id} />
-            )}
+        {recipe.is_own_recipe && recipe.is_hidden && (
+          <div className="mb-6 rounded-2xl bg-pink-500/15 px-4 py-3 text-[13.5px] font-semibold text-pink-600">
+            🚫 Công thức này đang bị ẩn khỏi công khai do vi phạm quy định
+            cộng đồng. Xem thông báo để biết chi tiết, hoặc liên hệ hỗ trợ
+            nếu bạn cho rằng đây là nhầm lẫn.
           </div>
         )}
 
