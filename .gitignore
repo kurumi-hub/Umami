@@ -23,6 +23,11 @@
 # misc
 .DS_Store
 *.pem
+/src.zip
+
+# local Codex planning and project notes
+/PROJECT_MEMORY.md
+/ROADMAP.md
 
 # debug
 npm-debug.log*

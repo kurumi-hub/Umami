@@ -1,0 +1,2 @@
+-- Keep this file free of production data, credentials, and personal data.
+-- Add deterministic local development fixtures here when the project needs them.
