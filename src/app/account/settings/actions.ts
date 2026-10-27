@@ -6,7 +6,8 @@ import { createClient } from "@/utils/supabase/server";
 export async function updateProfile(
   displayName: string,
   username: string,
-  bio: string
+  bio: string,
+  avatarUrl: string
 ) {
   const supabase = await createClient();
   const {
@@ -28,6 +29,7 @@ export async function updateProfile(
       display_name: displayName.trim() || null,
       username: cleanUsername,
       bio: bio.trim() || null,
+      avatar_url: avatarUrl || null,
     })
     .eq("id", user.id);
 
@@ -41,6 +43,7 @@ export async function updateProfile(
 
   revalidatePath("/account");
   revalidatePath("/account/settings");
+  revalidatePath("/");
   return { error: null };
 }
 

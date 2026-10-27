@@ -37,18 +37,27 @@ export default async function AppHeader({ active }: { active: NavKey }) {
   let uncheckedCount = 0;
   let unreadNotifCount = 0;
   let isModerator = false;
+  let avatarUrl: string | null = null;
+  let profileDisplayName: string | null = null;
   if (user) {
-    const [{ count }, { data: unreadCountData }, { data: roles }] = await Promise.all([
+    const [{ count }, { data: unreadCountData }, { data: roles }, { data: profile }] = await Promise.all([
       supabase
         .from("shopping_list_items")
         .select("id", { count: "exact", head: true })
         .eq("is_checked", false),
       supabase.rpc("unread_notification_count"),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase
+        .from("profiles")
+        .select("avatar_url, display_name")
+        .eq("id", user.id)
+        .maybeSingle(),
     ]);
     uncheckedCount = count ?? 0;
     unreadNotifCount = unreadCountData ?? 0;
     isModerator = (roles ?? []).some((r) => r.role === "moderator" || r.role === "admin");
+    avatarUrl = profile?.avatar_url ?? null;
+    profileDisplayName = profile?.display_name ?? null;
   }
 
   return (
@@ -118,8 +127,20 @@ export default async function AppHeader({ active }: { active: NavKey }) {
 
           {user ? (
             <div className="flex items-center gap-4">
+              <Link
+                href="/account"
+                aria-label="Trang cá nhân"
+                className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-pink-300 bg-pink-100 text-pink-600"
+              >
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="Ảnh đại diện" className="h-full w-full object-cover" />
+                ) : (
+                  <IconUser className="h-4.5 w-4.5" />
+                )}
+              </Link>
               <span className="hidden sm:block text-[14px] font-semibold text-ink">
-                Chào, {user.user_metadata?.full_name?.split(" ").pop() || "bạn"}
+                Chào, {profileDisplayName?.split(" ").pop() || user.user_metadata?.full_name?.split(" ").pop() || "bạn"}
               </span>
               <form action={logout}>
                 <button

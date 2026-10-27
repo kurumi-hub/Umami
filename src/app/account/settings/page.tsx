@@ -21,7 +21,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio, is_private")
+    .select("username, display_name, bio, avatar_url, is_private")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -78,6 +78,7 @@ export default async function SettingsPage() {
             initialDisplayName={profile?.display_name ?? ""}
             initialUsername={profile?.username ?? ""}
             initialBio={profile?.bio ?? ""}
+            initialAvatarUrl={profile?.avatar_url ?? ""}
           />
         </section>
 
